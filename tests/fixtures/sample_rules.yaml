@@ -1,0 +1,38 @@
+# sample_rules.yaml — example QC rule configuration for multi-tag SCADA data
+
+# Rules applied to every tag unless overridden in tag_rules
+default_rules:
+  - check: null
+    level: bad
+
+  - check: flatline
+    window: 1h
+    min_delta: 0.001
+    level: sus
+
+  - check: delta
+    threshold: 50.0
+    level: sus
+
+# Tag-specific rules (merged with default_rules)
+tag_rules:
+  TAG_A:
+    - check: range
+      min: 0
+      max: 100
+      level: bad
+
+  TAG_B:
+    - check: range
+      min: 0
+      max: 100
+      level: bad
+    - check: flatline
+      window: 30min
+      min_delta: 0.0
+      level: sus
+
+  "TAG_*":
+    - check: delta
+      threshold: 80.0
+      level: sus
