@@ -313,7 +313,7 @@ class QCResult:
         """
         Returns a Plotly Figure object (not displayed — caller does fig.show() or result.plot().show()).
         The chart is a horizontal Gantt-style timeline with one row per tag.
-        Color scheme: good=#2ECC71 (green), sus=#FFFF00 (amber), bad=#E74C3C (red).
+        Color scheme: good=#008000 (green), sus=#FFFF00 (yellow), bad=#FF0000 (red).
         Tooltip on hover: tag name, start time, end time, duration, quality level.
         """
     
@@ -478,7 +478,7 @@ def encode_quality_runs(df: pd.DataFrame) -> pd.DataFrame:
 The Plotly chart produced by `result.plot()` must meet these requirements:
 
 - **Chart type:** `plotly.express.timeline()` (Gantt mode) with `x_start="start"`, `x_end="end"`, `y="tag_name"`, `color="quality"`
-- **Color map:** `{"good": "#2ECC71", "sus": "#FFFF00", "bad": "#E74C3C"}`
+- **Color map:** `{"good": "#008000", "sus": "#FFFF00", "bad": "#FF0000"}`
 - **Y-axis:** Tags ordered by `pct_bad` descending (worst tags at top)
 - **Hover tooltip:** Shows `tag_name`, `quality`, `start`, `end`, `duration` (human-readable, e.g. "2h 15m")
 - **Summary bar (optional, `show_summary_bar=True`):** A stacked horizontal bar below the timeline showing overall % good/sus/bad per tag. Use a second subplot via `plotly.subplots.make_subplots`.
@@ -738,7 +738,7 @@ Quality bar: all tests pass. Running result.plot().show() in Jupyter renders the
 **Acceptance criteria:**
 - [ ] `result.plot()` returns a `plotly.graph_objects.Figure`
 - [ ] Chart has one horizontal row per tag
-- [ ] Colors are green (#2ECC71), amber (#FFFF00), red (#E74C3C)
+- [ ] Colors are green (#008000), yellow (#FFFF00), red (#FF0000)
 - [ ] Tags are ordered worst-first (highest `pct_bad` at top)
 - [ ] Hover tooltip shows tag, quality level, start, end, duration
 - [ ] `result.plot(tags=["TAG_A"])` shows only TAG_A

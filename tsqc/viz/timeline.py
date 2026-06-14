@@ -6,9 +6,9 @@ import pandas as pd
 import plotly.graph_objects as go
 
 _COLOR_MAP = {
-    "good": "#2ECC71",
+    "good": "#008000",
     "sus": "#FFFF00",
-    "bad": "#E74C3C",
+    "bad": "#FF0000",
 }
 
 # Draw bad first so good segments render on top when segments overlap at borders

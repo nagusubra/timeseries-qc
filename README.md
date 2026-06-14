@@ -2,13 +2,54 @@
 
 [![PyPI](https://img.shields.io/pypi/v/timeseries-qc)](https://pypi.org/project/timeseries-qc/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/timeseries-qc/timeseries-qc/actions/workflows/ci.yml/badge.svg)](https://github.com/timeseries-qc/timeseries-qc/actions)
 
-**The missing quality-control layer for SCADA, IoT, and historian timeseries data.**
+**The open source data quality-control layer for SCADA, DCS, IoT, and historian timeseries data.**
 
-Add `good / sus / bad` labels to every row of a pandas DataFrame in five lines. Then render a multi-tag horizontal status timeline — the chart that no other open-source library produces.
+Add `good / sus / bad` quality labels to every row of a pandas DataFrame in five lines. Then render a multi-tag horizontal status timeline, the chart that no other open-source library produces.
 
----
+A simple to digest and understand timeseries data quality check. Catch the issues in your process data before it affects your downstream analytics and business decisions. Build data quality checks based on business rules and monitor through interactive graph  components. 
+
+**Sample Input - Solar farm SCADA data:**
+
+```text
+| timestamp                 | tag_name       | value   |
+| :------------------------ | :------------- | :------ |
+| 2026-01-01 00:00:00+00:00 | INVERTER.MW    | 42.1    |
+| 2026-01-01 01:00:00+00:00 | INVERTER.MW    | NULL    |  <-- timeseries_qc will catch this (Null value)
+| 2026-01-01 02:00:00+00:00 | INVERTER.MW    | 52.3    |
+| 2026-01-01 00:00:00+00:00 | MET.IRRADIANCE | 600.001 |
+| 2026-01-01 01:00:00+00:00 | MET.IRRADIANCE | 600.001 |  <-- timeseries_qc will catch this (Stale/Frozen value)
+| 2026-01-01 02:00:00+00:00 | MET.IRRADIANCE | 810.818 |
+| 2026-01-01 00:00:00+00:00 | TRACKER.ANGLE  | 30.22   |
+| 2026-01-01 01:00:00+00:00 | TRACKER.ANGLE  | 45.31   |
+| 2026-01-01 02:00:00+00:00 | TRACKER.ANGLE  | 60.22   |
+```
+
+**Sample Output - Solar farm SCADA data:**
+
+![Solar farm SCADA data quality example](./docs/solar_farm_example.png)
+
+
+**Sample Input - Oil field SCADA data:**
+
+```text
+| timestamp                 | tag_name     | value  |
+| :------------------------ | :----------- | :----- |
+| 2026-01-01 00:00:00+00:00 | WHP.PSIG     | 0      |  <-- timeseries_qc will catch this (Flatline/Zero)
+| 2026-01-01 01:00:00+00:00 | WHP.PSIG     | 0      |  <-- timeseries_qc will catch this (Flatline/Zero)
+| 2026-01-01 02:00:00+00:00 | WHP.PSIG     | 0      |  <-- timeseries_qc will catch this (Flatline/Zero)
+| 2026-01-01 00:00:00+00:00 | FMRATE.MSCFD | 12.1   |
+| 2026-01-01 01:00:00+00:00 | FMRATE.MSCFD | 90.99  |  <-- timeseries_qc will catch this (Rate-of-change spike)
+| 2026-01-01 02:00:00+00:00 | FMRATE.MSCFD | 12.3   |
+| 2026-01-01 00:00:00+00:00 | OHT.TEMP_F   | 30.2   |
+| 2026-01-01 01:00:00+00:00 | OHT.TEMP_F   | 45.2   |
+| 2026-01-01 02:00:00+00:00 | OHT.TEMP_F   | 6000.2 |  <-- timeseries_qc will catch this (Out of bounds)
+```
+
+**Sample Output - Oil field SCADA data:**
+
+![Oil  field SCADA data quality example](./docs/oil_field_example.png)
+
 
 ## Features
 
