@@ -21,10 +21,22 @@ pytest tests/test_rules.py -v
 pytest --cov=tsqc --cov-fail-under=80
 ```
 
-## Lint
+## Lint & Type Check
 
 ```bash
 ruff check tsqc/
+mypy tsqc/
+```
+
+## Synthetic Data Generation
+
+Test data generators live in `synthetic_data_generation/`. These are standalone scripts
+that produce CSV files with engineered anomalies for testing the library. They are not
+shipped with the PyPI package.
+
+```bash
+cd synthetic_data_generation
+python generate_solar_data.py
 ```
 
 ## Submitting a PR

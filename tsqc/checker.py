@@ -223,12 +223,9 @@ def check(
 
         # Resolve rules for this tag
         if yaml_rules is not None:
-            import fnmatch
+            from tsqc.config.yaml_parser import get_rules_for_tag
 
-            tag_rules = list(yaml_rules.get("default", []))
-            for pattern, pattern_rules in yaml_rules.get("tags", {}).items():
-                if fnmatch.fnmatch(tag, pattern):
-                    tag_rules.extend(pattern_rules)
+            tag_rules = get_rules_for_tag(yaml_rules, tag)
             if not tag_rules:
                 tag_rules = _build_default_rules(tag_series)
         elif rules is not None:

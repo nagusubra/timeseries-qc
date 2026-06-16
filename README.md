@@ -147,7 +147,8 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ## Examples
 
-- [examples/power_generation.ipynb](examples/power_generation.ipynb) — hydro power SCADA data with 4 tags, anomaly injection, and full report export
+- [examples/solar_farm.ipynb](examples/solar_farm.ipynb) — solar farm SCADA data with anomaly injection
+- [examples/oilfield.ipynb](examples/oilfield.ipynb) — oil well pad SCADA data with anomaly injection
 
 ---
 
