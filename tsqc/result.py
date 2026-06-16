@@ -164,6 +164,103 @@ class QCResult:
         )
 
     # ------------------------------------------------------------------ #
+    #  issue_summary()
+    # ------------------------------------------------------------------ #
+
+    def issue_summary(self) -> pd.DataFrame:
+        """Return a per-issue summary of non-good quality runs.
+
+        Each row represents a contiguous segment (run) of 'bad' or 'sus'
+        quality for a given tag, with start/end timestamps, row count, and
+        total duration in hours.
+
+        Columns: tag_name, issue_start_time, issue_end_time,
+                 n_rows_with_issues, status, totalDuration_hours
+        """
+        from tsqc.viz.rle import encode_quality_runs
+
+        segments = encode_quality_runs(
+            self._df,
+            time_col=self.time_col,
+            tag_col=self.tag_col,
+            quality_col=self.quality_col,
+        )
+
+        segments = segments[segments["quality"] != "good"].copy()
+
+        if segments.empty:
+            return pd.DataFrame(columns=[
+                "tag_name", "issue_start_time", "issue_end_time",
+                "n_rows_with_issues", "status", "totalDuration_hours",
+            ])
+
+        # Count actual rows per tag/start/end segment
+        df = self._df.copy()
+        if self.tag_col is not None and self.tag_col in df.columns:
+            grouped = df.groupby(self.tag_col)
+        else:
+            grouped = [("default", df)]
+
+        row_counts: dict[tuple, int] = {}
+        for tag, group in grouped:
+            group = group.sort_values(self.time_col)
+            qualities = group[self.quality_col].to_list()
+            timestamps = group[self.time_col].to_list()
+
+            n = len(group)
+            run_starts = [0]
+            for i in range(1, n):
+                if qualities[i] != qualities[i - 1]:
+                    run_starts.append(i)
+            run_starts.append(n)
+
+            for j in range(len(run_starts) - 1):
+                s_idx = run_starts[j]
+                e_idx = run_starts[j + 1]
+                start_ts = timestamps[s_idx]
+                quality = qualities[s_idx]
+                end_ts = timestamps[e_idx - 1] if e_idx <= n else timestamps[-1]
+                key = (tag, start_ts, end_ts, quality)
+                row_counts[key] = e_idx - s_idx
+
+        records = []
+        for _, seg in segments.iterrows():
+            tag = seg["tag_name"]
+            start = seg["start"]
+            end = seg["end"]
+            quality = seg["quality"]
+            if self.tag_col is not None and self.tag_col in df.columns:
+                mask = (
+                    (df[self.tag_col] == tag)
+                    & (df[self.time_col] >= start)
+                    & (df[self.time_col] < end)
+                    & (df[self.quality_col] == quality)
+                )
+            else:
+                mask = (
+                    (df[self.time_col] >= start)
+                    & (df[self.time_col] < end)
+                    & (df[self.quality_col] == quality)
+                )
+            n_rows = mask.sum()
+            duration_hours = round(seg["duration_seconds"] / 3600, 1)
+            records.append({
+                "tag_name": tag,
+                "issue_start_time": start.isoformat(),
+                "issue_end_time": end.isoformat(),
+                "n_rows_with_issues": int(n_rows),
+                "status": quality,
+                "totalDuration_hours": duration_hours,
+            })
+
+        result_df = pd.DataFrame(records)
+        if not result_df.empty:
+            result_df = result_df.sort_values(
+                ["tag_name", "issue_start_time"]
+            ).reset_index(drop=True)
+        return result_df
+
+    # ------------------------------------------------------------------ #
     #  export_report()
     # ------------------------------------------------------------------ #
 
@@ -174,8 +271,9 @@ class QCResult:
     ) -> None:
         """Write a self-contained HTML quality report to *path*.
 
-        The file contains an embedded Plotly chart, summary table,
-        timestamp health table, and run metadata. No external CDN required.
+        The file contains an embedded Plotly chart, per-tag summary table,
+        per-issue summary table, timestamp health table, and run metadata.
+        No external CDN required.
         """
         import datetime
 
@@ -186,6 +284,7 @@ class QCResult:
 
         summary_df = self.summary()
         ts_issues = self.check_timestamps()
+        issue_df = self.issue_summary()
 
         n_tags = len(summary_df)
         n_rows = len(self._df)
@@ -241,6 +340,11 @@ class QCResult:
 <div class="section">
   <h2>Summary per Tag</h2>
   {_df_to_html_table(summary_df, 'summary-table')}
+</div>
+
+<div class="section">
+  <h2>Issue Summary (by Tag Issue)</h2>
+  {_df_to_html_table(issue_df, 'issue-summary-table')}
 </div>
 
 <div class="section">

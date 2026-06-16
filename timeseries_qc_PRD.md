@@ -339,6 +339,20 @@ class QCResult:
         Returns empty DataFrame if no issues found.
         """
     
+    def issue_summary(self) -> pd.DataFrame:
+        """
+        Returns a per-issue summary of non-good quality runs.
+        
+        Each row represents a contiguous segment (run) of 'bad' or 'sus'
+        quality for a given tag, with start/end timestamps, row count, and
+        total duration in hours.
+        
+        Columns: tag_name, issue_start_time, issue_end_time,
+                 n_rows_with_issues, status, totalDuration_hours
+        
+        Returns empty DataFrame if no issues found.
+        """
+    
     def export_report(
         self,
         path: str,                           # File path, e.g. "report.html"
@@ -348,6 +362,7 @@ class QCResult:
         Writes a self-contained HTML file with:
         - Embedded Plotly timeline chart (no external CDN required)
         - Summary table per tag
+        - Issue summary table per contiguous bad/sus segment
         - Timestamp health issues table (if any)
         - Metadata: run timestamp, number of tags, number of rows, rule config used
         """
@@ -806,8 +821,8 @@ Prerequisite: Phases 0–3 complete, all tests passing.
 Tasks:
 1. Implement result.export_report(path, title) in tsqc/result.py:
    - Writes a self-contained HTML file (no external CDN calls at render time)
-   - Sections: header with title + metadata, embedded Plotly chart, summary table, 
-     timestamp health issues table (if any)
+    - Sections: header with title + metadata, embedded Plotly chart, summary table, 
+      per-issue summary table, timestamp health issues table (if any)
    - Use plotly.io.to_html(fig, full_html=False, include_plotlyjs=True) for embedding
    - Summary and issues tables: plain HTML tables with basic inline CSS (no external CSS)
 2. Bump version to 0.1.0 in pyproject.toml.

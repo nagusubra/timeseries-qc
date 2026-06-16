@@ -57,7 +57,8 @@ A simple to digest and understand timeseries data quality check. Catch the issue
 - **Timeline chart** (`result.plot()`) — Plotly Gantt-style, one row per tag, Green/Yellow/Red, hover tooltips
 - **YAML config** — non-coders set thresholds in a text file, no Python required
 - **Timestamp health** (`result.check_timestamps()`) — detects gaps, duplicates, non-monotonic, freq drift, DST ambiguity
-- **Self-contained HTML export** (`result.export_report("report.html")`) — offline, no CDN
+- **Self-contained HTML export** (`result.export_report("report.html")`) — offline, no CDN, includes per-issue summary table
+- **Per-issue breakdown** (`result.issue_summary()`) — start/end times, row count, duration, and status for each contiguous bad/sus segment
 - **Pandas-native** — works with any DataFrame that has `timestamp`, `tag_name`, `value` columns
 
 ---
@@ -119,9 +120,10 @@ tag_rules:
 
 ```python
 result = tsqc.check(df, rules="tsqc_rules.yaml")
-result.summary()          # DataFrame: pct_good/sus/bad per tag
-result.check_timestamps() # DataFrame: gap/duplicate/non_monotonic issues
-result.export_report("report.html")
+result.summary()           # DataFrame: pct_good/sus/bad per tag
+result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, duration)
+result.check_timestamps()  # DataFrame: gap/duplicate/non_monotonic issues
+result.export_report("report.html")  # Full HTML with chart + all tables
 ```
 
 ---
