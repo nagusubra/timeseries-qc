@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: timeseries-qc
-Version: 0.1.0
+Version: 0.1.1
 Summary: Classify timeseries rows as Good / Sus / Bad and render a multi-tag quality timeline chart.
 Author: timeseries-qc contributors
 License-Expression: MIT
@@ -19,6 +19,7 @@ Classifier: Intended Audience :: Science/Research
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.9
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Requires-Dist: pandas>=1.5
 Requires-Dist: plotly>=5.0
 Requires-Dist: pyyaml>=6.0
@@ -29,6 +30,7 @@ Requires-Dist: ruff>=0.4; extra == "dev"
 Requires-Dist: mypy>=1.0; extra == "dev"
 Requires-Dist: build>=1.0; extra == "dev"
 Requires-Dist: twine>=5.0; extra == "dev"
+Dynamic: license-file
 
 # timeseries-qc
 
