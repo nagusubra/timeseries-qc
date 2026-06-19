@@ -9,17 +9,17 @@ Everything you need to begin using `timeseries-qc` for time series data quality 
 
 <div class="tsqc-grid" markdown="1">
 <div class="tsqc-grid-item" markdown="1">
-**[Installation](../installation/)**
+**[Installation](../installation.md)**
 
 System requirements, pip install, and development setup.
 </div>
 <div class="tsqc-grid-item" markdown="1">
-**[Quickstart](../quickstart/)**
+**[Quickstart](../quickstart.md)**
 
 Run your first quality check in 5 lines of Python.
 </div>
 <div class="tsqc-grid-item" markdown="1">
-**[User Guide](../user-guide/)**
+**[User Guide](../user-guide.md)**
 
 Full walkthrough with examples and best practices.
 </div>
