@@ -4,7 +4,7 @@ Version: 0.1.0
 Summary: Classify timeseries rows as Good / Sus / Bad and render a multi-tag quality timeline chart.
 Author: timeseries-qc contributors
 License-Expression: MIT
-Project-URL: Homepage, https://github.com/nagusubra/timeseries-qc
+Project-URL: Homepage, https://nagusubra.github.io/timeseries-qc/
 Project-URL: Repository, https://github.com/nagusubra/timeseries-qc
 Project-URL: Issues, https://github.com/nagusubra/timeseries-qc/issues
 Keywords: timeseries,data quality,QC,SCADA,IoT,pandas

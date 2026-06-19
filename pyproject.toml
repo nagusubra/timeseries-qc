@@ -31,7 +31,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nagusubra/timeseries-qc"
+Homepage = "https://nagusubra.github.io/timeseries-qc/"
 Repository = "https://github.com/nagusubra/timeseries-qc"
 Issues = "https://github.com/nagusubra/timeseries-qc/issues"
 
