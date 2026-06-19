@@ -9,17 +9,17 @@ Project-level information for `timeseries-qc`.
 
 <div class="tsqc-grid" markdown="1">
 <div class="tsqc-grid-item" markdown="1">
-**[Roadmap](../roadmap/)**
+**[Roadmap](../roadmap.md)**
 
 Planned features and version timeline.
 </div>
 <div class="tsqc-grid-item" markdown="1">
-**[Changelog](../changelog/)**
+**[Changelog](../changelog.md)**
 
 Release notes for all versions.
 </div>
 <div class="tsqc-grid-item" markdown="1">
-**[Contributing](../contributing/)**
+**[Contributing](../contributing.md)**
 
 How to build, test, and contribute to the library.
 </div>
