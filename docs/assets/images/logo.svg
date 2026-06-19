@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 32">
+  <rect width="32" height="32" rx="6" fill="#2563eb"/>
+  <text x="16" y="22" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" fill="#fff" text-anchor="middle">QC</text>
+  <text x="42" y="22" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="700" fill="#2563eb">timeseries-qc</text>
+</svg>
