@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nagusubra.github.io/timeseries-qc/sitemap.xml

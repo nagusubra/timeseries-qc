@@ -1,0 +1,107 @@
+site_name: timeseries-qc
+site_description: >-
+  Open-source Python library for quality control of SCADA, DCS, IoT, and historian
+  time-series data. Tags every row as good, suspect, or bad with built-in rules,
+  YAML configuration, and Plotly timeline charts.
+site_url: https://nagusubra.github.io/timeseries-qc/
+site_author: timeseries-qc contributors
+copyright: MIT &copy; timeseries-qc contributors
+
+repo_url: https://github.com/nagusubra/timeseries-qc
+repo_name: nagusubra/timeseries-qc
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  favicon: assets/images/favicon.svg
+  logo: assets/images/favicon.svg
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - social:
+      cards_layout_options:
+        background_color: "#2563eb"
+  - tags
+  - git-revision-date-localized:
+      enable_creation_date: true
+      enable_git_follow: false
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+  - pymdownx.keys
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.smartsymbols
+  - tables
+  - footnotes
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+extra:
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/nagusubra/timeseries-qc
+      name: timeseries-qc on GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/timeseries-qc/
+      name: timeseries-qc on PyPI
+  generator: false
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+nav:
+  - Home: index.md

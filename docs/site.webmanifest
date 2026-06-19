@@ -1,0 +1,17 @@
+{
+  "name": "timeseries-qc",
+  "short_name": "tsqc",
+  "description": "Quality-control layer for SCADA, DCS, IoT, and historian time-series data",
+  "start_url": "/timeseries-qc/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "assets/images/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

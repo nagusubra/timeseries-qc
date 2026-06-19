@@ -1,0 +1,121 @@
+/* Quality badge colors */
+:root {
+  --qc-good: #16a34a;
+  --qc-sus: #ca8a04;
+  --qc-bad: #dc2626;
+}
+
+/* Homepage hero */
+.tsqc-hero {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.tsqc-hero h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.tsqc-hero .tagline {
+  font-size: 1.1rem;
+  color: var(--md-default-fg-color--light);
+  max-width: 640px;
+  margin: 0 auto 1.5rem;
+}
+
+.tsqc-hero .badges {
+  margin-bottom: 1.5rem;
+}
+
+.tsqc-hero .badges img {
+  height: 22px;
+}
+
+/* Install command */
+.tsqc-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--md-code-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  font-family: var(--md-code-font-family);
+  font-size: 0.85rem;
+  margin: 0 auto 1rem;
+}
+
+.tsqc-install .prompt {
+  color: var(--md-default-fg-color--light);
+  user-select: none;
+}
+
+/* Feature grid */
+.tsqc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.tsqc-grid-item {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 6px;
+  padding: 1.25rem;
+  transition: border-color 0.15s;
+}
+
+.tsqc-grid-item:hover {
+  border-color: var(--md-primary-fg-color);
+}
+
+.tsqc-grid-item h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+}
+
+.tsqc-grid-item p {
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+  margin: 0;
+}
+
+/* Quality labels row */
+.tsqc-qlabels {
+  display: flex;
+  gap: 1.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.tsqc-qlabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.tsqc-qlabel.good { color: var(--qc-good); }
+.tsqc-qlabel.suspect { color: var(--qc-sus); }
+.tsqc-qlabel.bad { color: var(--qc-bad); }
+
+/* Comparison table */
+.tsqc-comp-table td:first-child {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Screenshots */
+.tsqc-screenshot {
+  margin: 1.5rem 0;
+  border-radius: 6px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  overflow: hidden;
+}
+
+.tsqc-screenshot figcaption {
+  font-size: 0.82rem;
+  color: var(--md-default-fg-color--light);
+  padding: 0.5rem 1rem 1rem;
+}
