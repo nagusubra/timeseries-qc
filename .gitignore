@@ -23,6 +23,10 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# MkDocs build output
+site/
+.cache/
+
 # Generated data artifacts
 *.csv
 # *.html

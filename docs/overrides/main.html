@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+
+  <!-- Theme color -->
+  <meta name="theme-color" content="#2563eb">
+  <meta name="msapplication-config" content="browserconfig.xml">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="apple-touch-icon" href="assets/images/favicon.svg">
+
+  <!-- Organization Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "timeseries-qc",
+    "url": "https://nagusubra.github.io/timeseries-qc/",
+    "logo": "https://nagusubra.github.io/timeseries-qc/assets/images/favicon.svg",
+    "sameAs": [
+      "https://github.com/nagusubra/timeseries-qc",
+      "https://pypi.org/project/timeseries-qc/"
+    ]
+  }
+  </script>
+
+  <!-- SoftwareApplication Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "timeseries-qc",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Linux, macOS, Windows",
+    "description": "Quality-control layer for SCADA, DCS, IoT, and historian time-series data. Tags every row as good, suspect, or bad with built-in rules, YAML config, and Plotly timeline charts.",
+    "url": "https://nagusubra.github.io/timeseries-qc/",
+    "sameAs": "https://github.com/nagusubra/timeseries-qc",
+    "author": {
+      "@type": "Organization",
+      "name": "timeseries-qc contributors"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <!-- WebSite Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "timeseries-qc",
+    "url": "https://nagusubra.github.io/timeseries-qc/"
+  }
+  </script>
+
+{% endblock %}
