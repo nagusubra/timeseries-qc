@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>timeseries-qc — Data Quality Control for Time Series</title>
+<meta name="description" content="Classify every row of your time series as Good / Suspect / Bad, then render a multi-tag quality timeline chart. Open-source, pandas-native, YAML-driven.">
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --border: #e5e7eb;
+    --code-bg: #f3f4f6;
+    --card: #f9fafb;
+    --good: #16a34a;
+    --sus: #ca8a04;
+    --bad: #dc2626;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", SFMono-Regular, "Cascadia Code", Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+      --border: #334155;
+      --code-bg: #1e293b;
+      --card: #1e293b;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  header h1 span { color: var(--accent); }
+  header .sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 640px;
+    margin-bottom: 20px;
+  }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .badges img { height: 20px; }
+  .quick-install {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: default;
+  }
+  .quick-install .prompt { color: var(--muted); }
+  .quick-install .cmd { color: var(--accent); }
+
+  /* Sections */
+  section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+  section:last-of-type { border-bottom: none; }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  h2 .anchor { color: var(--accent); }
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    margin-top: 24px;
+  }
+  p, li { color: var(--text); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 16px 0;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  pre code { background: none; padding: 0; border-radius: 0; }
+  .kw { color: #7c3aed; }
+  .fn { color: #2563eb; }
+  .str { color: #16a34a; }
+  .cm { color: var(--muted); font-style: italic; }
+  .op { color: var(--text); }
+
+  /* Feature cards */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .card h3 { margin-top: 0; }
+  .card p { font-size: 0.92rem; color: var(--muted); }
+  .card .icon { font-size: 1.8rem; margin-bottom: 8px; }
+
+  /* Quality badges */
+  .qlabels { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+  .qlabel {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 0.85rem; font-weight: 600;
+  }
+  .qlabel.good { background: #dcfce7; color: #166534; }
+  .qlabel.sus  { background: #fef9c3; color: #854d0e; }
+  .qlabel.bad  { background: #fee2e2; color: #991b1b; }
+  @media (prefers-color-scheme: dark) {
+    .qlabel.good { background: #052e16; color: #86efac; }
+    .qlabel.sus  { background: #422006; color: #fde047; }
+    .qlabel.bad  { background: #450a0a; color: #fca5a5; }
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin: 16px 0;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: var(--card); font-weight: 600; }
+
+  /* Images */
+  figure {
+    margin: 24px 0;
+    text-align: center;
+  }
+  figure img {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  figcaption {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* Footer */
+  footer {
+    padding: 32px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--muted); text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.8rem; }
+    .quick-install { font-size: 0.8rem; flex-wrap: wrap; }
+    section { padding: 32px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+<div class="container">
+  <h1><span>timeseries</span>-qc</h1>
+  <p class="sub">
+    The open-source data quality-control layer for SCADA, DCS, IoT, and historian time-series data.
+    Classify every row as <strong>Good</strong>, <strong>Suspect</strong>, or <strong>Bad</strong>,
+    then render a multi-tag horizontal status timeline — the chart that no other open-source library produces.
+  </p>
+  <div class="badges">
+    <a href="https://pypi.org/project/timeseries-qc/"><img src="https://img.shields.io/pypi/v/timeseries-qc" alt="PyPI"></a>
+    <a href="https://pypi.org/project/timeseries-qc/"><img src="https://img.shields.io/pypi/pyversions/timeseries-qc" alt="Python versions"></a>
+    <a href="https://github.com/nagusubra/timeseries-qc"><img src="https://img.shields.io/github/license/nagusubra/timeseries-qc" alt="License"></a>
+  </div>
+  <div class="quick-install">
+    <span class="prompt">$</span>
+    <span class="cmd">pip install timeseries-qc</span>
+  </div>
+</div>
+</header>
+
+<main class="container">
+
+<!-- Quickstart -->
+<section id="quickstart">
+<h2><span class="anchor">#</span> Quickstart (5 lines)</h2>
+<pre><code><span class="kw">import</span> <span class="fn">tsqc</span>
+<span class="kw">import</span> <span class="fn">pandas</span> <span class="kw">as</span> <span class="fn">pd</span>
+
+df <span class="op">=</span> pd.read_csv(<span class="str">"sensor_data.csv"</span>)          <span class="cm"># columns: timestamp, tag_name, value</span>
+result <span class="op">=</span> tsqc.check(df, assume_tz<span class="op">=</span><span class="str">"UTC"</span>)    <span class="cm"># runs QC rules on every tag</span>
+result.plot().show()                            <span class="cm"># multi-tag quality timeline</span>
+print(result.summary())                         <span class="cm"># % good / sus / bad per tag</span></code></pre>
+</section>
+
+<!-- Features -->
+<section id="features">
+<h2><span class="anchor">#</span> Features</h2>
+<div class="features">
+  <div class="card">
+    <div class="icon">&#9889;</div>
+    <h3>4 Built-in Rules</h3>
+    <p><code>NullRule</code>, <code>FlatlineRule</code>, <code>DeltaRule</code>, <code>RangeRule</code> — cover ≥80% of real-world bad data out of the box.</p>
+  </div>
+  <div class="card">
+    <div class="icon">&#128202;</div>
+    <h3>Timeline Chart</h3>
+    <p>Plotly Gantt-style chart: one row per tag, Green/Yellow/Red, interactive hover, range slider.</p>
+  </div>
+  <div class="card">
+    <div class="icon">&#128196;</div>
+    <h3>YAML Config</h3>
+    <p>Non-coders set thresholds in a text file. Glob-based tag matching supported.</p>
+  </div>
+  <div class="card">
+    <div class="icon">&#128295;</div>
+    <h3>Timestamp Health</h3>
+    <p>Detect gaps, duplicates, non-monotonic timestamps, frequency drift, and DST ambiguity.</p>
+  </div>
+  <div class="card">
+    <div class="icon">&#128230;</div>
+    <h3>HTML Export</h3>
+    <p>Self-contained offline report with embedded Plotly chart, summary tables, and issue breakdown.</p>
+  </div>
+  <div class="card">
+    <div class="icon">&#128200;</div>
+    <h3>Per-Issue Breakdown</h3>
+    <p>Start/end times, row count, duration for every contiguous bad/sus segment.</p>
+  </div>
+</div>
+
+<h3>Quality Labels</h3>
+<div class="qlabels">
+  <span class="qlabel good">&#9679; good</span>
+  <span class="qlabel sus">&#9679; suspect</span>
+  <span class="qlabel bad">&#9679; bad</span>
+</div>
+<p>Each row is tagged with a quality label. When multiple rules fire, the worst level wins (<code>bad &gt; sus &gt; good</code>). Triggered rule names appear in <code>quality_reasons</code>.</p>
+</section>
+
+<!-- Example Output -->
+<section id="examples">
+<h2><span class="anchor">#</span> Example Output</h2>
+
+<figure>
+  <img src="solar_farm_example.png" alt="Solar farm SCADA data quality timeline">
+  <figcaption>Solar farm SCADA — 3 tags, 1 week of hourly data with engineered anomalies flagged by all four rules.</figcaption>
+</figure>
+
+<figure>
+  <img src="oil_field_example.png" alt="Oil field SCADA data quality timeline">
+  <figcaption>Oil well pad SCADA — 3 tags, 1 month of hourly data with pressure, flow, and temperature anomalies.</figcaption>
+</figure>
+</section>
+
+<!-- Input/Output Schema -->
+<section id="schema">
+<h2><span class="anchor">#</span> Input &amp; Output Schema</h2>
+
+<h3>Input</h3>
+<p>Any pandas DataFrame with these columns:</p>
+<table>
+  <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>timestamp</code></td><td>datetime</td><td>UTC-aware or tz-naive (use <code>assume_tz</code>)</td></tr>
+    <tr><td><code>tag_name</code></td><td>str</td><td>Identifier for the sensor / signal. Omit for single-tag mode.</td></tr>
+    <tr><td><code>value</code></td><td>float</td><td>The measurement to check.</td></tr>
+  </tbody>
+</table>
+
+<h3>Output</h3>
+<p><code>result.df</code> adds two columns:</p>
+<table>
+  <thead><tr><th>Column</th><th>Values</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>quality</code></td><td><code>"good"</code>, <code>"sus"</code>, <code>"bad"</code></td><td>Worst-level rule wins (<code>bad &gt; sus &gt; good</code>)</td></tr>
+    <tr><td><code>quality_reasons</code></td><td>e.g. <code>"flatline|range"</code></td><td>Pipe-delimited triggered rule names</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- YAML Config -->
+<section id="yaml">
+<h2><span class="anchor">#</span> YAML Config Example</h2>
+<pre><code><span class="cm"># tsqc_rules.yaml</span>
+default_rules:
+  <span class="op">-</span> check: null
+    level: bad
+  <span class="op">-</span> check: flatline
+    window: 1h
+    min_delta: 0.001
+    level: sus
+  <span class="op">-</span> check: delta
+    threshold: 50.0
+    level: sus
+
+tag_rules:
+  <span class="str">"FOREBAY.LEVEL"</span>:
+    <span class="op">-</span> check: range
+      min: 900
+      max: 1100
+      level: bad
+  <span class="str">"GENERATOR.*"</span>:
+    <span class="op">-</span> check: range
+      min: 0
+      max: 200
+      level: bad
+    <span class="op">-</span> check: flatline
+      window: 30min
+      min_delta: 0.5
+      level: sus</code></pre>
+
+<pre><code>result <span class="op">=</span> tsqc.check(df, rules<span class="op">=</span><span class="str">"tsqc_rules.yaml"</span>)
+result.summary()           <span class="cm"># DataFrame: pct_good/sus/bad per tag</span>
+result.issue_summary()     <span class="cm"># DataFrame: per-issue runs (start, end, rows, duration)</span>
+result.check_timestamps()  <span class="cm"># DataFrame: gap/duplicate/non_monotonic issues</span>
+result.export_report(<span class="str">"report.html"</span>)  <span class="cm"># Full HTML with chart + all tables</span></code></pre>
+</section>
+
+<!-- Complete API -->
+<section id="api">
+<h2><span class="anchor">#</span> API Reference</h2>
+
+<h3><code>tsqc.check(df, ...)</code></h3>
+<table>
+  <thead><tr><th>Argument</th><th>Default</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>time_col</code></td><td><code>"timestamp"</code></td><td>Name of the timestamp column.</td></tr>
+    <tr><td><code>tag_col</code></td><td><code>"tag_name"</code></td><td>Name of the tag column. <code>None</code> = single-tag mode.</td></tr>
+    <tr><td><code>value_col</code></td><td><code>"value"</code></td><td>Name of the value column.</td></tr>
+    <tr><td><code>rules</code></td><td><code>None</code></td><td>List of <code>Rule</code> objects, path to a YAML file, or <code>None</code> (auto 3-sigma delta).</td></tr>
+    <tr><td><code>assume_tz</code></td><td><code>None</code></td><td>IANA timezone for tz-naive input (e.g. <code>"UTC"</code>, <code>"America/Chicago"</code>).</td></tr>
+  </tbody>
+</table>
+
+<h3><code>QCResult</code> Methods</h3>
+<table>
+  <thead><tr><th>Method</th><th>Returns</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>.df</code></td><td>DataFrame</td><td>Annotated input with <code>quality</code> + <code>quality_reasons</code> columns.</td></tr>
+    <tr><td><code>.summary()</code></td><td>DataFrame</td><td>Per-tag %good/sus/bad, sorted by pct_bad descending.</td></tr>
+    <tr><td><code>.plot(tags, start, end)</code></td><td>Plotly Figure</td><td>Multi-tag quality timeline chart.</td></tr>
+    <tr><td><code>.issue_summary()</code></td><td>DataFrame</td><td>Contiguous bad/sus segments with start, end, rows, duration.</td></tr>
+    <tr><td><code>.check_timestamps()</code></td><td>DataFrame</td><td>Gap, duplicate, non-monotonic, freq drift, DST issues.</td></tr>
+    <tr><td><code>.export_report(path)</code></td><td>None</td><td>Self-contained HTML report (no CDN required).</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- Installation -->
+<section id="installation">
+<h2><span class="anchor">#</span> Installation</h2>
+<pre><code><span class="cm"># Production (3 dependencies: pandas, plotly, pyyaml)</span>
+pip install timeseries-qc
+
+<span class="cm"># Development</span>
+git clone https://github.com/nagusubra/timeseries-qc.git
+cd timeseries-qc
+pip install -e <span class="str">".[dev]"</span></code></pre>
+</section>
+
+<!-- Dependencies -->
+<section id="deps">
+<h2><span class="anchor">#</span> Dependencies</h2>
+<table>
+  <thead><tr><th>Package</th><th>Min Version</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>pandas</code></td><td>≥ 1.5</td><td>DataFrame operations, time-series handling.</td></tr>
+    <tr><td><code>plotly</code></td><td>≥ 5.0</td><td>Interactive quality timeline chart + HTML export.</td></tr>
+    <tr><td><code>pyyaml</code></td><td>≥ 6.0</td><td>YAML config-file parsing.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- Comparisons -->
+<section id="comparison">
+<h2><span class="anchor">#</span> Comparison with Alternatives</h2>
+<table>
+  <thead><tr><th></th><th>timeseries-qc</th><th>Pecos</th><th>SaQC</th><th>Great Expectations</th></tr></thead>
+  <tbody>
+    <tr><td>Classification</td><td>Good / Sus / Bad</td><td>Pass / Fail</td><td>Flags</td><td>Pass / Fail</td></tr>
+    <tr><td>Timeline chart</td><td><strong>&#10003;</strong></td><td>&#10007;</td><td>&#10007;</td><td>&#10007;</td></tr>
+    <tr><td>YAML config</td><td><strong>&#10003;</strong></td><td>&#10007;</td><td>JSON</td><td>&#10007;</td></tr>
+    <tr><td>Time-series native</td><td><strong>&#10003;</strong></td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+    <tr><td>pip install</td><td><strong>&#10003;</strong></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- Known Limitations -->
+<section id="limitations">
+<h2><span class="anchor">#</span> Known Limitations (v0.1.0)</h2>
+<ol>
+  <li><strong>Pandas only.</strong> PySpark and Polars support are deferred.</li>
+  <li><strong>No YAML override of default rules.</strong> Tag-specific rules add to, not replace, default rules.</li>
+  <li><strong>Visualization requires Plotly ≥ 5.0.</strong> Matplotlib output not supported.</li>
+  <li><strong><code>DeltaRule</code> is point-to-point diff only.</strong> Rolling-window delta is a v0.2 feature.</li>
+</ol>
+</section>
+
+</main>
+
+<footer>
+<div class="container">
+  <p>
+    <a href="https://github.com/nagusubra/timeseries-qc">GitHub</a>
+    &middot; <a href="https://pypi.org/project/timeseries-qc/">PyPI</a>
+    &middot; <a href="https://github.com/nagusubra/timeseries-qc/issues">Issues</a>
+    &middot; MIT License
+  </p>
+  <p>timeseries-qc contributors</p>
+</div>
+</footer>
+
+</body>
+</html>

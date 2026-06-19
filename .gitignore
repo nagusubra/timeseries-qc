@@ -25,4 +25,4 @@ Thumbs.db
 
 # Generated data artifacts
 *.csv
-*.html
+# *.html

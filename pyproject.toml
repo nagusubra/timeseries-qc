@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Classify timeseries rows as Good / Sus / Bad and render a multi-tag quality timeline chart."
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = "MIT"
 keywords = ["timeseries", "data quality", "QC", "SCADA", "IoT", "pandas"]
 authors = [
     { name = "timeseries-qc contributors" },
@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: MIT License",
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
@@ -32,9 +31,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/timeseries-qc/timeseries-qc"
-Repository = "https://github.com/timeseries-qc/timeseries-qc"
-Issues = "https://github.com/timeseries-qc/timeseries-qc/issues"
+Homepage = "https://github.com/nagusubra/timeseries-qc"
+Repository = "https://github.com/nagusubra/timeseries-qc"
+Issues = "https://github.com/nagusubra/timeseries-qc/issues"
 
 [project.optional-dependencies]
 dev = [
