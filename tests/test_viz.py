@@ -91,6 +91,34 @@ class TestEncodeQualityRuns:
         # Duration should be > 0 (last_ts + median_interval with 1 row)
         assert segs.iloc[0]["duration_seconds"] >= 0
 
+    def test_rle_captures_reasons(self):
+        df = pd.DataFrame([
+            {"timestamp": pd.Timestamp("2026-01-01 00:00", tz="UTC"), "tag_name": "T", "quality": "good", "quality_reasons": ""},
+            {"timestamp": pd.Timestamp("2026-01-01 00:01", tz="UTC"), "tag_name": "T", "quality": "bad", "quality_reasons": "null"},
+            {"timestamp": pd.Timestamp("2026-01-01 00:02", tz="UTC"), "tag_name": "T", "quality": "bad", "quality_reasons": "null|flatline"},
+            {"timestamp": pd.Timestamp("2026-01-01 00:03", tz="UTC"), "tag_name": "T", "quality": "sus", "quality_reasons": "delta"},
+        ])
+        segs = encode_quality_runs(df, reasons_col="quality_reasons")
+        assert len(segs) == 3
+        good_seg = segs[segs["quality"] == "good"].iloc[0]
+        assert good_seg["reasons"] == ""
+        bad_seg = segs[segs["quality"] == "bad"].iloc[0]
+        assert bad_seg["reasons"] == "flatline, null"
+        sus_seg = segs[segs["quality"] == "sus"].iloc[0]
+        assert sus_seg["reasons"] == "delta"
+
+    def test_rle_reasons_empty_df(self):
+        df = pd.DataFrame(columns=["timestamp", "tag_name", "quality", "quality_reasons"])
+        segs = encode_quality_runs(df, reasons_col="quality_reasons")
+        assert segs.empty
+        assert list(segs.columns) == ["tag_name", "quality", "start", "end", "duration_seconds", "reasons"]
+
+    def test_rle_reasons_column_missing_no_crash(self):
+        df = _seg_df([("2026-01-01 00:00", "T", "good")])
+        segs = encode_quality_runs(df, reasons_col="nonexistent_col")
+        assert len(segs) == 1
+        assert "reasons" not in segs.columns
+
 
 # ─────────────────────────────  Timeline figure  ───────────────────────────
 
@@ -134,6 +162,22 @@ class TestBuildTimelineFigure:
         # Exactly 3 quality levels → at most 3 unique legend item names
         legend_names = {trace.name for trace in fig.data if trace.showlegend}
         assert legend_names.issubset({"good", "sus", "bad"})
+
+    def test_hover_includes_cause_for_bad_sus(self, single_tag_df):
+        import tsqc
+        result = tsqc.check(single_tag_df)
+        fig = result.plot()
+        has_cause = False
+        for trace in fig.data:
+            ht = trace.hovertext
+            if ht is not None:
+                if isinstance(ht, str) and "Cause:" in ht:
+                    has_cause = True
+                    break
+                if isinstance(ht, (list, tuple)) and any("Cause:" in str(h) for h in ht):
+                    has_cause = True
+                    break
+        assert has_cause, "Expected at least one trace with 'Cause:' in hovertext"
 
     def test_no_error_on_all_good_data(self):
         import plotly.graph_objects as go

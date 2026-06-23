@@ -125,6 +125,7 @@ class QCResult:
             time_col=self.time_col,
             tag_col=self.tag_col,
             quality_col=self.quality_col,
+            reasons_col=self.reasons_col,
         )
 
         summary = self.summary()

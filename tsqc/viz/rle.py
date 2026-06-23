@@ -13,6 +13,7 @@ def encode_quality_runs(
     time_col: str = "timestamp",
     tag_col: str | None = "tag_name",
     quality_col: str = "quality",
+    reasons_col: str | None = None,
 ) -> pd.DataFrame:
     """Convert a row-per-observation DataFrame into a segment-per-run DataFrame.
 
@@ -24,16 +25,25 @@ def encode_quality_runs(
         time_col: Name of the timestamp column.
         tag_col: Name of the tag column. None = treat entire df as one tag.
         quality_col: Name of the quality column.
+        reasons_col: Name of the column containing pipe-delimited rule names
+            (e.g. "quality_reasons"). If provided, each segment will include
+            a "reasons" column with the union of all distinct rule names.
 
     Returns:
         DataFrame with columns:
             tag_name, quality, start, end, duration_seconds
+            (+ "reasons" if reasons_col is provided and present in df)
 
         *end* of a segment is the start of the next segment, or
         last_timestamp + median_interval for the final segment of each tag.
     """
+    _has_reasons = reasons_col is not None and reasons_col in df.columns
+    _cols = ["tag_name", "quality", "start", "end", "duration_seconds"]
+    if _has_reasons:
+        _cols.append("reasons")
+
     if df.empty:
-        return pd.DataFrame(columns=["tag_name", "quality", "start", "end", "duration_seconds"])
+        return pd.DataFrame(columns=_cols)
 
     if tag_col is None or tag_col not in df.columns:
         work = df.copy()
@@ -77,15 +87,27 @@ def encode_quality_runs(
                 end_ts = timestamps.iloc[-1] + median_interval
 
             duration_s = (end_ts - start_ts).total_seconds()
-            segments.append(
-                {
-                    "tag_name": tag,
-                    "quality": quality,
-                    "start": start_ts,
-                    "end": end_ts,
-                    "duration_seconds": duration_s,
-                }
-            )
+
+            seg: dict = {
+                "tag_name": tag,
+                "quality": quality,
+                "start": start_ts,
+                "end": end_ts,
+                "duration_seconds": duration_s,
+            }
+
+            if _has_reasons:
+                segment_reasons = group[reasons_col].iloc[s_idx:e_idx]
+                unique_reasons: set[str] = set()
+                for r in segment_reasons:
+                    if r and isinstance(r, str) and r.strip():
+                        for token in r.split("|"):
+                            token = token.strip()
+                            if token:
+                                unique_reasons.add(token)
+                seg["reasons"] = ", ".join(sorted(unique_reasons))
+
+            segments.append(seg)
 
     result = pd.DataFrame(segments)
     if "_tag" in work.columns and tag_col is None:
