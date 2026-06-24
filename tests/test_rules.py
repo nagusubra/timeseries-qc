@@ -203,5 +203,5 @@ class TestQualityPrecedence:
         ]
         result = tsqc.check(df, rules=rules)
         assert result.df["quality"].iloc[0] == "bad"
-        assert "null" in result.df["quality_reasons"].iloc[0]
+        assert "null values" in result.df["quality_reasons"].iloc[0]
         assert "also_bad" in result.df["quality_reasons"].iloc[0]

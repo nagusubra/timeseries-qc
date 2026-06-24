@@ -42,7 +42,7 @@ result.plot(title="Solar Farm Quality", height=600)
 ## Interactive Features
 
 - **Hover** over segments for details (tag, quality, start, end, duration)
-- **Cause tooltip**: Hovering over suspect or bad segments shows the triggering rule(s) — e.g. `Cause: null`, `Cause: flatline`, `Cause: delta, null` — so you can immediately see _why_ a segment was flagged
+- **Cause tooltip**: Hovering over suspect or bad segments shows the triggering rule(s) — e.g. `Cause: null values`, `Cause: flatline`, `Cause: delta, null values` — so you can immediately see _why_ a segment was flagged
 - **Range selector** buttons: 1d, 1w, 1m, All
 - **Range slider** at the bottom for zooming
 - **Legend** toggles visibility of good/suspect/bad segments

@@ -62,7 +62,7 @@ Columns: `tag_name`, `total_rows`, `pct_good`, `pct_sus`, `pct_bad`, `n_good`, `
 
 Return a Plotly multi-tag horizontal quality timeline figure.
 
-Hover tooltips show tag name, quality level, start/end timestamps, duration, and — for suspect/bad segments — the **cause** (e.g. `Cause: null`, `Cause: flatline`, `Cause: delta, null`).
+Hover tooltips show tag name, quality level, start/end timestamps, duration, and — for suspect/bad segments — the **cause** (e.g. `Cause: null values`, `Cause: flatline`, `Cause: delta, null values`).
 
 | Argument | Default | Description |
 |----------|---------|-------------|

@@ -240,7 +240,7 @@ def check(
         # NaT-timestamped rows are always "bad" (NullRule implicit)
         if not nat_df.empty:
             nat_q = pd.Series("bad", index=nat_df.index, dtype=str, name=quality_col)
-            nat_r = pd.Series("null", index=nat_df.index, dtype=str, name=reasons_col)
+            nat_r = pd.Series("null values", index=nat_df.index, dtype=str, name=reasons_col)
             q = pd.concat([q, nat_q])
             r = pd.concat([r, nat_r])
 

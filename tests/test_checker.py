@@ -65,7 +65,7 @@ class TestQualityReasons:
         df = _utc_df(with_nan=True, with_spike=False)
         result = tsqc.check(df, rules=[NullRule()])
         nan_row = result.df[result.df["value"].isna()]
-        assert "null" in nan_row["quality_reasons"].iloc[0]
+        assert "null values" in nan_row["quality_reasons"].iloc[0]
 
     def test_pipe_delimited_multiple_reasons(self):
         df = _utc_df(with_nan=True, with_spike=False)
@@ -77,7 +77,7 @@ class TestQualityReasons:
         nan_row = result.df[result.df["value"].isna()]
         reasons = nan_row["quality_reasons"].iloc[0]
         assert "|" in reasons
-        assert "null" in reasons
+        assert "null values" in reasons
         assert "also_null" in reasons
 
     def test_good_rows_have_empty_reasons(self):

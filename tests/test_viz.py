@@ -94,8 +94,8 @@ class TestEncodeQualityRuns:
     def test_rle_captures_reasons(self):
         df = pd.DataFrame([
             {"timestamp": pd.Timestamp("2026-01-01 00:00", tz="UTC"), "tag_name": "T", "quality": "good", "quality_reasons": ""},
-            {"timestamp": pd.Timestamp("2026-01-01 00:01", tz="UTC"), "tag_name": "T", "quality": "bad", "quality_reasons": "null"},
-            {"timestamp": pd.Timestamp("2026-01-01 00:02", tz="UTC"), "tag_name": "T", "quality": "bad", "quality_reasons": "null|flatline"},
+            {"timestamp": pd.Timestamp("2026-01-01 00:01", tz="UTC"), "tag_name": "T", "quality": "bad", "quality_reasons": "null values"},
+            {"timestamp": pd.Timestamp("2026-01-01 00:02", tz="UTC"), "tag_name": "T", "quality": "bad", "quality_reasons": "null values|flatline"},
             {"timestamp": pd.Timestamp("2026-01-01 00:03", tz="UTC"), "tag_name": "T", "quality": "sus", "quality_reasons": "delta"},
         ])
         segs = encode_quality_runs(df, reasons_col="quality_reasons")
@@ -103,7 +103,7 @@ class TestEncodeQualityRuns:
         good_seg = segs[segs["quality"] == "good"].iloc[0]
         assert good_seg["reasons"] == ""
         bad_seg = segs[segs["quality"] == "bad"].iloc[0]
-        assert bad_seg["reasons"] == "flatline, null"
+        assert bad_seg["reasons"] == "flatline, null values"
         sus_seg = segs[segs["quality"] == "sus"].iloc[0]
         assert sus_seg["reasons"] == "delta"
 
