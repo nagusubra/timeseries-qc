@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: timeseries-qc
-Version: 0.1.1
+Version: 0.1.3
 Summary: Classify timeseries rows as Good / Sus / Bad and render a multi-tag quality timeline chart.
 Author: timeseries-qc contributors
 License-Expression: MIT
