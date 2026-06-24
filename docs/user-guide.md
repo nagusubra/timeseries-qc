@@ -67,6 +67,20 @@ rules = [
 result = tsqc.check(df, rules=rules, assume_tz="UTC")
 ```
 
+## Timezone Handling
+
+`timeseries-qc` automatically preserves the timezone of your input data through the entire pipeline:
+
+- **Tz-naive input:** Pass `assume_tz="America/Edmonton"` (or your source timezone). The library normalises to UTC internally for consistent rule evaluation, then converts all output back to your source timezone.
+- **Tz-aware input:** Your existing timezone is detected and used automatically. `assume_tz` is optional.
+- **Chart display:** `result.plot()` shows the x-axis and hover tooltips in the input timezone.
+- **Data inspection:** `result.df` contains timestamps in the input timezone. Use `result.display_tz` to see which timezone was applied.
+
+```python
+result = tsqc.check(df, assume_tz="America/Edmonton")
+print(result.display_tz)  # "America/Edmonton"
+```
+
 ## Interpreting Results
 
 ### Quality Classification

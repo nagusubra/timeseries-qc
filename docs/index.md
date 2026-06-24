@@ -194,7 +194,7 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
-## Known Limitations (v0.1.1)
+## Known Limitations (v0.2.0)
 
 1. **Pandas only.** PySpark and Polars support are planned.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.

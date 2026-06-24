@@ -147,6 +147,7 @@ def check_timestamps(
     result: "QCResult",
     expected_freq: str | None = None,
     freq_tolerance: float = 0.1,
+    display_tz: str = "UTC",
 ) -> pd.DataFrame:
     """Detect timestamp anomalies in a QCResult.
 
@@ -155,6 +156,7 @@ def check_timestamps(
         expected_freq: Expected frequency as a pandas offset string (e.g. "1min").
                        None = auto-infer per tag.
         freq_tolerance: Fraction of expected_freq before flagging drift. Default 0.1.
+        display_tz: IANA timezone for output timestamps.
 
     Returns:
         DataFrame with columns: tag_name, issue_type, timestamp, description, severity.
@@ -187,16 +189,48 @@ def check_timestamps(
                 freq_tolerance=freq_tolerance,
                 dst_ambiguous_set=dst_set,
             )
+            # Convert issue timestamps to display timezone
+            for issue in issues:
+                ts_val = issue["timestamp"]
+                if pd.notna(ts_val):
+                    if hasattr(ts_val, "tz") and ts_val.tz is not None and str(ts_val.tz) != display_tz:
+                        issue["timestamp"] = ts_val.tz_convert(display_tz)
+                        issue["description"] = issue["description"].replace(
+                            str(ts_val), str(issue["timestamp"])
+                        )
             all_issues.extend(issues)
     else:
+        ts = df[time_col]
         issues = _check_single_tag(
             tag="default",
-            ts=df[time_col],
+            ts=ts,
             expected_freq=parsed_freq,
             freq_tolerance=freq_tolerance,
             dst_ambiguous_set=dst_set,
         )
+        for issue in issues:
+            ts_val = issue["timestamp"]
+            if pd.notna(ts_val):
+                if hasattr(ts_val, "tz") and ts_val.tz is not None and str(ts_val.tz) != display_tz:
+                    issue["timestamp"] = ts_val.tz_convert(display_tz)
+                    issue["description"] = issue["description"].replace(
+                        str(ts_val), str(issue["timestamp"])
+                    )
         all_issues.extend(issues)
+
+    # Localize ambiguous (wall-clock, naive) timestamps to display_tz.
+    # These timestamps were inherently ambiguous during DST (fall-back fold),
+    # so localize leniently — NaT rows remain naive in the output.
+    for issue in all_issues:
+        if issue["issue_type"] == "dst_ambiguous":
+            ts_val = issue["timestamp"]
+            if pd.notna(ts_val) and (not hasattr(ts_val, "tz") or ts_val.tz is None):
+                try:
+                    issue["timestamp"] = ts_val.tz_localize(
+                        display_tz, ambiguous="infer"
+                    )
+                except Exception:
+                    pass  # leave as naive if still ambiguous
 
     if not all_issues:
         return _empty_issues()

@@ -134,11 +134,31 @@ class TestCheckErrors:
         with pytest.raises(ValueError, match="IANA"):
             tsqc.check(df, assume_tz="NotATimezone/Bogus")
 
-    def test_tz_aware_non_utc_converted_to_utc(self):
+    def test_tz_aware_preserves_display_timezone(self):
         ts = pd.date_range("2026-01-01", periods=5, freq="1min", tz="America/Chicago")
         df = pd.DataFrame({"timestamp": ts, "tag_name": "T", "value": [1.0] * 5})
         result = tsqc.check(df)
-        assert str(result.df["timestamp"].dt.tz) == "UTC"
+        assert str(result.df["timestamp"].dt.tz) == "America/Chicago"
+        assert result.display_tz == "America/Chicago"
+
+    def test_display_tz_property(self):
+        ts = pd.date_range("2026-01-01", periods=5, freq="1min")  # tz-naive
+        df = pd.DataFrame({"timestamp": ts, "tag_name": "T", "value": [1.0] * 5})
+        result = tsqc.check(df, assume_tz="America/Edmonton")
+        assert result.display_tz == "America/Edmonton"
+        assert str(result.df["timestamp"].dt.tz) == "America/Edmonton"
+
+    def test_assume_tz_non_utc_keeps_local_timestamps(self):
+        """Timestamps in result.df are in assume_tz, not UTC."""
+        ts = pd.date_range("2026-01-01", periods=5, freq="1min")  # tz-naive
+        df = pd.DataFrame({"timestamp": ts, "tag_name": "T", "value": [1.0] * 5})
+        result = tsqc.check(df, assume_tz="America/Edmonton")
+        # The displayed timestamps should show local wall-clock time
+        display_ts = result.df["timestamp"]
+        assert display_ts.dt.tz is not None
+        assert str(display_ts.dt.tz) == "America/Edmonton"
+        # The hour should match the original naive input (local time)
+        assert display_ts.iloc[0].hour == 0  # midnight local
 
 
 # ─────────────────────────────  No tag column  ─────────────────────────────

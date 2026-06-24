@@ -179,6 +179,36 @@ class TestBuildTimelineFigure:
                     break
         assert has_cause, "Expected at least one trace with 'Cause:' in hovertext"
 
+    def test_plot_uses_display_timezone_for_non_utc(self):
+        """Plot should render bars at the correct universal instant for local timestamps."""
+        import plotly.graph_objects as go
+
+        ts = pd.date_range("2026-01-01", periods=20, freq="1min", tz="America/Denver")
+        df = pd.DataFrame({"timestamp": ts, "tag_name": "T", "value": [1.0] * 20})
+        result = tsqc.check(df)
+        assert result.display_tz == "America/Denver"
+        fig = result.plot()
+        assert isinstance(fig, go.Figure)
+        # Bar base values should be ISO strings with correct offset
+        for trace in fig.data:
+            if trace.base is not None:
+                for base_val in trace.base:
+                    if base_val:
+                        assert "-07:00" in base_val or "-06:00" in base_val, (
+                            f"Expected America/Denver offset in {base_val}"
+                        )
+                        break
+
+    def test_plot_start_end_interpreted_in_display_tz(self):
+        """Bare start/end strings should be interpreted in display timezone."""
+        import plotly.graph_objects as go
+
+        ts = pd.date_range("2026-01-01", periods=100, freq="1min", tz="UTC")
+        df = pd.DataFrame({"timestamp": ts, "tag_name": "T", "value": [1.0] * 100})
+        result = tsqc.check(df, assume_tz="America/Edmonton")
+        fig = result.plot(start="2026-01-01", end="2026-01-01T01:00:00")
+        assert isinstance(fig, go.Figure)
+
     def test_no_error_on_all_good_data(self):
         import plotly.graph_objects as go
 

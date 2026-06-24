@@ -46,7 +46,17 @@ Yes. Include a `tag_name` column in your DataFrame. Each unique value is treated
 
 ### Can I use UTC?
 
-Yes. `timeseries-qc` converts all timestamps to UTC internally. Pass `assume_tz="UTC"` for tz-naive data.
+Yes. Pass `assume_tz="UTC"` for tz-naive data, or pass tz-aware timestamps already in UTC.
+
+Internally, the library normalizes all timestamps to UTC for consistent rule evaluation (flatline windows, gap detection, etc.). However, `result.df`, `result.plot()`, `issue_summary()`, and `check_timestamps()` all return timestamps in the **original input timezone** — so the chart x-axis, hover tooltips, and summary tables all show local time automatically.
+
+### What timezone does the chart display?
+
+The chart x-axis and hover tooltips always display timestamps in the same timezone as your input data. If you pass `assume_tz="America/Edmonton"`, the chart shows Edmonton local time. If your timestamps are already tz-aware, their existing timezone is used. No extra parameter is needed.
+
+### Can I see what timezone the library is using?
+
+Yes. `result.display_tz` returns the IANA timezone string (e.g., `"America/Edmonton"`, `"UTC"`) used for all timestamp display.
 
 ### Can I export HTML reports?
 

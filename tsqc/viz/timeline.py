@@ -35,6 +35,7 @@ def build_timeline_figure(
     summary: pd.DataFrame | None = None,
     title: str = "Data Quality Timeline",
     height: int = 400,
+    display_tz: str = "UTC",
     **kwargs,
 ) -> go.Figure:
     """Build a Plotly Gantt-style quality timeline figure.

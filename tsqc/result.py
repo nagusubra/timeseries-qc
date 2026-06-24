@@ -15,6 +15,7 @@ class QCResult:
 
     Attributes:
         df: Original DataFrame with quality and quality_reasons columns appended.
+        display_tz: IANA timezone in which timestamps are displayed.
     """
 
     def __init__(
@@ -26,6 +27,7 @@ class QCResult:
         quality_col: str = "quality",
         reasons_col: str = "quality_reasons",
         ambiguous_timestamps: list[pd.Timestamp] | None = None,
+        display_tz: str = "UTC",
     ) -> None:
         self._df = df
         self.time_col = time_col
@@ -34,6 +36,12 @@ class QCResult:
         self.quality_col = quality_col
         self.reasons_col = reasons_col
         self.ambiguous_timestamps: list[pd.Timestamp] = ambiguous_timestamps or []
+        self._display_tz = display_tz
+
+    @property
+    def display_tz(self) -> str:
+        """IANA timezone used for all timestamp display (plot, summaries, etc.)."""
+        return self._display_tz
 
     @property
     def df(self) -> pd.DataFrame:
@@ -112,12 +120,12 @@ class QCResult:
         if tags is not None and self.tag_col in df.columns:
             df = df[df[self.tag_col].isin(tags)]
 
-        # Apply time filter
+        # Apply time filter — bare strings are interpreted in the display timezone
         if start is not None:
-            start_ts = pd.Timestamp(start, tz="UTC") if "+" not in start and "Z" not in start else pd.Timestamp(start)
+            start_ts = pd.Timestamp(start, tz=self._display_tz) if "+" not in start and "Z" not in start else pd.Timestamp(start)
             df = df[df[self.time_col] >= start_ts]
         if end is not None:
-            end_ts = pd.Timestamp(end, tz="UTC") if "+" not in end and "Z" not in end else pd.Timestamp(end)
+            end_ts = pd.Timestamp(end, tz=self._display_tz) if "+" not in end and "Z" not in end else pd.Timestamp(end)
             df = df[df[self.time_col] <= end_ts]
 
         segments = encode_quality_runs(
@@ -137,6 +145,7 @@ class QCResult:
             summary=summary,
             title=title,
             height=height,
+            display_tz=self._display_tz,
         )
 
     # ------------------------------------------------------------------ #
@@ -162,6 +171,7 @@ class QCResult:
             result=self,
             expected_freq=expected_freq,
             freq_tolerance=freq_tolerance,
+            display_tz=self._display_tz,
         )
 
     # ------------------------------------------------------------------ #

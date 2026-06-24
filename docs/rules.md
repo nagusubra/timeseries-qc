@@ -28,7 +28,11 @@ Flags rows where the value has not changed by more than `min_delta` within the p
 
 - Default level: `sus`
 - Parameters: `window` (pandas offset alias), `min_delta` (minimum required change)
-- Configuration: `{check: flatline, window: 1h, min_delta: 0.001, level: sus}`
+- Configuration: `{check: flatline, window: 1h, min_delta: 0.001, level: sus}
+
+**DST behaviour:** The `window` parameter is measured in **elapsed UTC time** (not wall-clock time). Timestamps are normalised to UTC internally before rule evaluation, so `FlatlineRule(window="1h")` means one elapsed UTC hour. During DST transitions:
+- **Spring-forward:** One local wall-clock hour of flat data will span less UTC time (a shorter window), so the rule may flag fewer points than expected.
+- **Fall-back:** Ambiguous timestamps are dropped (set to `NaT` and flagged as `bad`), so the rule never evaluates on duplicate local-time rows.`
 
 ### DeltaRule
 

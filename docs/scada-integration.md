@@ -55,6 +55,17 @@ client = PIWebApiClient("https://pisrvr/piwebapi", auth=("user", "pass"))
 
 ## API Integration
 
+### Historical Context: Timezone Handling
+
+Most industrial historians (Aspen IP21, OSIsoft PI, Wonderware, GE Historian) return timestamps as local wall-clock time with no timezone attached. When working with such data:
+
+1. Pass the source timezone via `assume_tz` (e.g., `assume_tz="America/Edmonton"`).
+2. The library normalises to UTC internally for consistent rule evaluation.
+3. **All output** — `result.df`, `result.plot()`, `issue_summary()`, `check_timestamps()` — displays timestamps in the original source timezone automatically.
+4. If your timestamps are already tz-aware (e.g., ISO 8601 with offset), `assume_tz` is optional.
+
+## API Integration
+
 For custom integrations, `timeseries-qc` can be wrapped in an API endpoint:
 
 ```python

@@ -47,6 +47,15 @@ result.plot(title="Solar Farm Quality", height=600)
 - **Range slider** at the bottom for zooming
 - **Legend** toggles visibility of good/suspect/bad segments
 
+## Timezone Behavior
+
+The chart automatically displays timestamps in the same timezone as the input data — no extra configuration needed.
+
+- If you pass tz-naive data with `assume_tz="America/Edmonton"`, the x-axis and hover tooltips show Edmonton local time.
+- If you pass tz-aware timestamps (e.g., `datetime64[ns, America/Chicago]`), the chart uses that timezone.
+- The annotated DataFrame `result.df` also contains timestamps in the input timezone.
+- Bare date strings in `start`/`end` parameters (e.g., `start="2026-01-01"`) are interpreted in the input timezone.
+
 ## Exporting the Chart
 
 The chart can be saved as HTML or PNG using Plotly's export options:

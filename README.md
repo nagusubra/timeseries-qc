@@ -84,6 +84,8 @@ result.plot().show()                          # renders the multi-tag quality ti
 
 If your CSV already contains tz-aware timestamps (ISO 8601 with `+00:00`), omit `assume_tz`.
 
+The chart x-axis, hover tooltips, `result.df`, `issue_summary()`, and `check_timestamps()` all display timestamps in the **original input timezone** — so local time is shown automatically, no extra configuration needed.
+
 ---
 
 ## YAML Config Example
@@ -152,7 +154,7 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
-## Known Limitations (v0.1.0)
+## Known Limitations (v0.2.0)
 
 1. **Pandas only.** PySpark and Polars support are deferred.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.
