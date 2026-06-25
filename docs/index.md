@@ -167,7 +167,7 @@ tag_rules:
 ```python
 result = tsqc.check(df, rules="tsqc_rules.yaml")
 result.summary()           # DataFrame: pct_good/sus/bad per tag
-result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, duration)
+result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, duration, reasons)
 result.check_timestamps()  # DataFrame: gap/duplicate/non_monotonic issues
 result.export_report("report.html")  # Full HTML with chart + all tables
 ```

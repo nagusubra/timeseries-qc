@@ -182,11 +182,11 @@ class QCResult:
         """Return a per-issue summary of non-good quality runs.
 
         Each row represents a contiguous segment (run) of 'bad' or 'sus'
-        quality for a given tag, with start/end timestamps, row count, and
-        total duration in hours.
+        quality for a given tag, with start/end timestamps, row count,
+        total duration in hours, and the rule names that triggered.
 
         Columns: tag_name, issue_start_time, issue_end_time,
-                 n_rows_with_issues, status, totalDuration_hours
+                 n_rows_with_issues, status, totalDuration_hours, reasons
         """
         from tsqc.viz.rle import encode_quality_runs
 
@@ -195,15 +195,20 @@ class QCResult:
             time_col=self.time_col,
             tag_col=self.tag_col,
             quality_col=self.quality_col,
+            reasons_col=self.reasons_col,
         )
 
         segments = segments[segments["quality"] != "good"].copy()
+        _has_reasons = "reasons" in segments.columns
 
         if segments.empty:
-            return pd.DataFrame(columns=[
+            cols = [
                 "tag_name", "issue_start_time", "issue_end_time",
                 "n_rows_with_issues", "status", "totalDuration_hours",
-            ])
+            ]
+            if _has_reasons:
+                cols.append("reasons")
+            return pd.DataFrame(columns=cols)
 
         # Count actual rows per tag/start/end segment
         df = self._df.copy()
@@ -255,14 +260,17 @@ class QCResult:
                 )
             n_rows = mask.sum()
             duration_hours = round(seg["duration_seconds"] / 3600, 1)
-            records.append({
+            record = {
                 "tag_name": tag,
                 "issue_start_time": start.isoformat(),
                 "issue_end_time": end.isoformat(),
                 "n_rows_with_issues": int(n_rows),
                 "status": quality,
                 "totalDuration_hours": duration_hours,
-            })
+            }
+            if _has_reasons:
+                record["reasons"] = seg.get("reasons", "")
+            records.append(record)
 
         result_df = pd.DataFrame(records)
         if not result_df.empty:

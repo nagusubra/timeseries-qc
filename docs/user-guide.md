@@ -107,7 +107,7 @@ Returns a DataFrame with per-tag percentages of good, suspect, and bad data, sor
 result.issue_summary()
 ```
 
-Lists contiguous segments of non-good quality with start/end timestamps, row counts, and durations.
+Lists contiguous segments of non-good quality with start/end timestamps, row counts, durations, and the rule names that triggered the issue.
 
 ### Timestamp Health
 

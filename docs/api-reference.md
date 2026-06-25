@@ -82,7 +82,7 @@ The x-axis and all timestamps are displayed in the **input timezone** — same a
 
 Per-issue breakdown of contiguous bad/sus segments.
 
-Columns: `tag_name`, `issue_start_time`, `issue_end_time`, `n_rows_with_issues`, `status`, `totalDuration_hours`
+Columns: `tag_name`, `issue_start_time`, `issue_end_time`, `n_rows_with_issues`, `status`, `totalDuration_hours`, `reasons` (comma-separated rule names that triggered the issue)
 
 #### `.check_timestamps(expected_freq, freq_tolerance)` -> pd.DataFrame
 
