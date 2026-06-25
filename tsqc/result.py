@@ -15,6 +15,7 @@ class QCResult:
 
     Attributes:
         df: Original DataFrame with quality and quality_reasons columns appended.
+        display_tz: IANA timezone in which timestamps are displayed.
     """
 
     def __init__(
@@ -26,6 +27,7 @@ class QCResult:
         quality_col: str = "quality",
         reasons_col: str = "quality_reasons",
         ambiguous_timestamps: list[pd.Timestamp] | None = None,
+        display_tz: str = "UTC",
     ) -> None:
         self._df = df
         self.time_col = time_col
@@ -34,6 +36,12 @@ class QCResult:
         self.quality_col = quality_col
         self.reasons_col = reasons_col
         self.ambiguous_timestamps: list[pd.Timestamp] = ambiguous_timestamps or []
+        self._display_tz = display_tz
+
+    @property
+    def display_tz(self) -> str:
+        """IANA timezone used for all timestamp display (plot, summaries, etc.)."""
+        return self._display_tz
 
     @property
     def df(self) -> pd.DataFrame:
@@ -112,12 +120,12 @@ class QCResult:
         if tags is not None and self.tag_col in df.columns:
             df = df[df[self.tag_col].isin(tags)]
 
-        # Apply time filter
+        # Apply time filter — bare strings are interpreted in the display timezone
         if start is not None:
-            start_ts = pd.Timestamp(start, tz="UTC") if "+" not in start and "Z" not in start else pd.Timestamp(start)
+            start_ts = pd.Timestamp(start, tz=self._display_tz) if "+" not in start and "Z" not in start else pd.Timestamp(start)
             df = df[df[self.time_col] >= start_ts]
         if end is not None:
-            end_ts = pd.Timestamp(end, tz="UTC") if "+" not in end and "Z" not in end else pd.Timestamp(end)
+            end_ts = pd.Timestamp(end, tz=self._display_tz) if "+" not in end and "Z" not in end else pd.Timestamp(end)
             df = df[df[self.time_col] <= end_ts]
 
         segments = encode_quality_runs(
@@ -125,6 +133,7 @@ class QCResult:
             time_col=self.time_col,
             tag_col=self.tag_col,
             quality_col=self.quality_col,
+            reasons_col=self.reasons_col,
         )
 
         summary = self.summary()
@@ -136,6 +145,7 @@ class QCResult:
             summary=summary,
             title=title,
             height=height,
+            display_tz=self._display_tz,
         )
 
     # ------------------------------------------------------------------ #
@@ -161,6 +171,7 @@ class QCResult:
             result=self,
             expected_freq=expected_freq,
             freq_tolerance=freq_tolerance,
+            display_tz=self._display_tz,
         )
 
     # ------------------------------------------------------------------ #
@@ -171,11 +182,11 @@ class QCResult:
         """Return a per-issue summary of non-good quality runs.
 
         Each row represents a contiguous segment (run) of 'bad' or 'sus'
-        quality for a given tag, with start/end timestamps, row count, and
-        total duration in hours.
+        quality for a given tag, with start/end timestamps, row count,
+        total duration in hours, and the rule names that triggered.
 
         Columns: tag_name, issue_start_time, issue_end_time,
-                 n_rows_with_issues, status, totalDuration_hours
+                 n_rows_with_issues, status, totalDuration_hours, reasons
         """
         from tsqc.viz.rle import encode_quality_runs
 
@@ -184,15 +195,20 @@ class QCResult:
             time_col=self.time_col,
             tag_col=self.tag_col,
             quality_col=self.quality_col,
+            reasons_col=self.reasons_col,
         )
 
         segments = segments[segments["quality"] != "good"].copy()
+        _has_reasons = "reasons" in segments.columns
 
         if segments.empty:
-            return pd.DataFrame(columns=[
+            cols = [
                 "tag_name", "issue_start_time", "issue_end_time",
                 "n_rows_with_issues", "status", "totalDuration_hours",
-            ])
+            ]
+            if _has_reasons:
+                cols.append("reasons")
+            return pd.DataFrame(columns=cols)
 
         # Count actual rows per tag/start/end segment
         df = self._df.copy()
@@ -244,14 +260,17 @@ class QCResult:
                 )
             n_rows = mask.sum()
             duration_hours = round(seg["duration_seconds"] / 3600, 1)
-            records.append({
+            record = {
                 "tag_name": tag,
                 "issue_start_time": start.isoformat(),
                 "issue_end_time": end.isoformat(),
                 "n_rows_with_issues": int(n_rows),
                 "status": quality,
                 "totalDuration_hours": duration_hours,
-            })
+            }
+            if _has_reasons:
+                record["reasons"] = seg.get("reasons", "")
+            records.append(record)
 
         result_df = pd.DataFrame(records)
         if not result_df.empty:

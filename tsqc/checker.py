@@ -37,8 +37,14 @@ def _normalize_timestamps(
     col: pd.Series,
     time_col: str,
     assume_tz: str | None,
-) -> tuple[pd.Series, list[pd.Timestamp]]:
-    """Convert timestamps to UTC-aware; return (utc_series, dst_ambiguous_timestamps)."""
+) -> tuple[pd.Series, list[pd.Timestamp], str]:
+    """Convert timestamps to UTC; return (utc_series, dst_ambiguous_timestamps, display_tz).
+
+    *display_tz* is the timezone the user's data is in — either the *assume_tz*
+    value for naive input, or the original timezone of tz-aware input.
+    """
+    import warnings as _warnings
+
     ambiguous_ts: list[pd.Timestamp] = []
 
     # Try to parse strings → datetime if needed
@@ -55,6 +61,7 @@ def _normalize_timestamps(
                 "or assume_tz='America/Chicago' for local time."
             )
         _validate_iana_tz(assume_tz)
+        display_tz = assume_tz
 
         # First attempt — strict (raises on ambiguous/nonexistent)
         try:
@@ -68,10 +75,18 @@ def _normalize_timestamps(
 
         col = col.dt.tz_convert("UTC")
     else:
-        # Already tz-aware — just convert to UTC
+        # Already tz-aware
+        display_tz = str(col.dt.tz)
+        if assume_tz is not None and assume_tz != display_tz:
+            _warnings.warn(
+                f"assume_tz={assume_tz!r} ignored because timestamps already have "
+                f"timezone {display_tz!r}. Using the existing timezone.",
+                UserWarning,
+                stacklevel=3,
+            )
         col = col.dt.tz_convert("UTC")
 
-    return col, ambiguous_ts
+    return col, ambiguous_ts, display_tz
 
 
 def _build_default_rules(series: pd.Series) -> list[Rule]:
@@ -188,7 +203,7 @@ def check(
     out = df.copy()
 
     # --- Normalize timestamps ---
-    ts_col, ambiguous_ts = _normalize_timestamps(out[time_col], time_col, assume_tz)
+    ts_col, ambiguous_ts, display_tz = _normalize_timestamps(out[time_col], time_col, assume_tz)
     out[time_col] = ts_col
 
     # --- Determine tags ---
@@ -240,7 +255,7 @@ def check(
         # NaT-timestamped rows are always "bad" (NullRule implicit)
         if not nat_df.empty:
             nat_q = pd.Series("bad", index=nat_df.index, dtype=str, name=quality_col)
-            nat_r = pd.Series("null", index=nat_df.index, dtype=str, name=reasons_col)
+            nat_r = pd.Series("null values", index=nat_df.index, dtype=str, name=reasons_col)
             q = pd.concat([q, nat_q])
             r = pd.concat([r, nat_r])
 
@@ -261,6 +276,10 @@ def check(
     if _tag_col == "_tag_internal":
         out = out.drop(columns=["_tag_internal"])
 
+    # Convert timestamps back to the display timezone so the user sees
+    # their original local timestamps in result.df, plot(), etc.
+    out[time_col] = out[time_col].dt.tz_convert(display_tz)
+
     return QCResult(
         df=out,
         time_col=time_col,
@@ -269,4 +288,5 @@ def check(
         quality_col=quality_col,
         reasons_col=reasons_col,
         ambiguous_timestamps=ambiguous_ts,
+        display_tz=display_tz,
     )

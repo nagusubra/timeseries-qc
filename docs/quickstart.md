@@ -26,6 +26,8 @@ result = tsqc.check(df, assume_tz="UTC")
 
 The `assume_tz` parameter tells the library what timezone your timestamps are in. If your CSV already contains UTC-aware timestamps (ISO 8601 with `+00:00`), you can omit it.
 
+All output — chart x-axis, `result.df`, summaries — automatically displays timestamps in this same timezone. No extra parameter is needed.
+
 ## Step 3: View Results
 
 ```python

@@ -34,7 +34,7 @@ result = tsqc.check(
 | `rules` | `None` | List of Rule objects, path to a YAML file, or `None` for auto-configured defaults |
 | `quality_col` | `"quality"` | Output column name for quality label |
 | `reasons_col` | `"quality_reasons"` | Output column name for triggered rule names |
-| `assume_tz` | `None` | IANA timezone for tz-naive input, e.g. `"UTC"` or `"America/Chicago"` |
+| `assume_tz` | `None` | IANA timezone for tz-naive input, e.g. `"UTC"` or `"America/Chicago"`. Optional if timestamps are already tz-aware — the existing timezone is used as-is. |
 
 ### Raises
 
@@ -48,7 +48,11 @@ The object returned by `tsqc.check()`.
 
 #### `.df` -> pd.DataFrame
 
-The original DataFrame with `quality` and `quality_reasons` columns appended.
+The original DataFrame with `quality` and `quality_reasons` columns appended. Timestamps are in the **input timezone** (the timezone specified via `assume_tz`, or the timezone of tz-aware input).
+
+#### `.display_tz` -> str
+
+IANA timezone used for all timestamp display (chart, summaries, tables). Examples: `"UTC"`, `"America/Edmonton"`, `"America/Chicago"`.
 
 ### Methods
 
@@ -62,11 +66,15 @@ Columns: `tag_name`, `total_rows`, `pct_good`, `pct_sus`, `pct_bad`, `n_good`, `
 
 Return a Plotly multi-tag horizontal quality timeline figure.
 
+Hover tooltips show tag name, quality level, start/end timestamps, duration, and — for suspect/bad segments — the **cause** (e.g. `Cause: null values`, `Cause: flatline`, `Cause: delta, null values`).
+
+The x-axis and all timestamps are displayed in the **input timezone** — same as `result.df`. Bare `start`/`end` strings (without `+` or `Z`) are interpreted in that input timezone.
+
 | Argument | Default | Description |
 |----------|---------|-------------|
 | `tags` | `None` | Subset of tag names to display. `None` = all tags |
-| `start` | `None` | ISO datetime string to clip the left edge |
-| `end` | `None` | ISO datetime string to clip the right edge |
+| `start` | `None` | ISO datetime string to clip the left edge. Bare strings use the input timezone. |
+| `end` | `None` | ISO datetime string to clip the right edge. Bare strings use the input timezone. |
 | `title` | `"Data Quality Timeline"` | Chart title |
 | `height` | `400` | Base figure height in pixels |
 
@@ -74,7 +82,7 @@ Return a Plotly multi-tag horizontal quality timeline figure.
 
 Per-issue breakdown of contiguous bad/sus segments.
 
-Columns: `tag_name`, `issue_start_time`, `issue_end_time`, `n_rows_with_issues`, `status`, `totalDuration_hours`
+Columns: `tag_name`, `issue_start_time`, `issue_end_time`, `n_rows_with_issues`, `status`, `totalDuration_hours`, `reasons` (comma-separated rule names that triggered the issue)
 
 #### `.check_timestamps(expected_freq, freq_tolerance)` -> pd.DataFrame
 

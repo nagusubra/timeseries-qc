@@ -167,7 +167,7 @@ tag_rules:
 ```python
 result = tsqc.check(df, rules="tsqc_rules.yaml")
 result.summary()           # DataFrame: pct_good/sus/bad per tag
-result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, duration)
+result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, duration, reasons)
 result.check_timestamps()  # DataFrame: gap/duplicate/non_monotonic issues
 result.export_report("report.html")  # Full HTML with chart + all tables
 ```
@@ -194,7 +194,7 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
-## Known Limitations (v0.1.1)
+## Known Limitations (v0.2.0)
 
 1. **Pandas only.** PySpark and Polars support are planned.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.

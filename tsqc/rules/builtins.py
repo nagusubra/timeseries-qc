@@ -15,7 +15,7 @@ class NullRule(Rule):
     Default level: "bad"
     """
 
-    name = "null"
+    name = "null values"
 
     def __init__(self, level: str = "bad") -> None:
         super().__init__(level=level)

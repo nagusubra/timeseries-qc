@@ -42,9 +42,19 @@ result.plot(title="Solar Farm Quality", height=600)
 ## Interactive Features
 
 - **Hover** over segments for details (tag, quality, start, end, duration)
+- **Cause tooltip**: Hovering over suspect or bad segments shows the triggering rule(s) — e.g. `Cause: null values`, `Cause: flatline`, `Cause: delta, null values` — so you can immediately see _why_ a segment was flagged
 - **Range selector** buttons: 1d, 1w, 1m, All
 - **Range slider** at the bottom for zooming
 - **Legend** toggles visibility of good/suspect/bad segments
+
+## Timezone Behavior
+
+The chart automatically displays timestamps in the same timezone as the input data — no extra configuration needed.
+
+- If you pass tz-naive data with `assume_tz="America/Edmonton"`, the x-axis and hover tooltips show Edmonton local time.
+- If you pass tz-aware timestamps (e.g., `datetime64[ns, America/Chicago]`), the chart uses that timezone.
+- The annotated DataFrame `result.df` also contains timestamps in the input timezone.
+- Bare date strings in `start`/`end` parameters (e.g., `start="2026-01-01"`) are interpreted in the input timezone.
 
 ## Exporting the Chart
 

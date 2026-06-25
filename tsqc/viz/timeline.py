@@ -35,6 +35,7 @@ def build_timeline_figure(
     summary: pd.DataFrame | None = None,
     title: str = "Data Quality Timeline",
     height: int = 400,
+    display_tz: str = "UTC",
     **kwargs,
 ) -> go.Figure:
     """Build a Plotly Gantt-style quality timeline figure.
@@ -75,6 +76,11 @@ def build_timeline_figure(
         + "End: " + segments["end"].astype(str) + "<br>"
         + "Duration: " + segments["duration_str"]
     )
+
+    # Append "Cause: ..." for non-good segments that have reasons
+    if "reasons" in segments.columns:
+        cause_mask = segments["reasons"].str.len() > 0
+        segments.loc[cause_mask, "hover"] += "<br>Cause: " + segments.loc[cause_mask, "reasons"]
 
     fig = go.Figure()
 

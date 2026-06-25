@@ -58,7 +58,7 @@ A simple to digest and understand timeseries data quality check. Catch the issue
 - **YAML config** — non-coders set thresholds in a text file, no Python required
 - **Timestamp health** (`result.check_timestamps()`) — detects gaps, duplicates, non-monotonic, freq drift, DST ambiguity
 - **Self-contained HTML export** (`result.export_report("report.html")`) — offline, no CDN, includes per-issue summary table
-- **Per-issue breakdown** (`result.issue_summary()`) — start/end times, row count, duration, and status for each contiguous bad/sus segment
+- **Per-issue breakdown** (`result.issue_summary()`) — start/end times, row count, duration, status, and triggered rule names for each contiguous bad/sus segment
 - **Pandas-native** — works with any DataFrame that has `timestamp`, `tag_name`, `value` columns
 
 ---
@@ -83,6 +83,8 @@ result.plot().show()                          # renders the multi-tag quality ti
 ```
 
 If your CSV already contains tz-aware timestamps (ISO 8601 with `+00:00`), omit `assume_tz`.
+
+The chart x-axis, hover tooltips, `result.df`, `issue_summary()`, and `check_timestamps()` all display timestamps in the **original input timezone** — so local time is shown automatically, no extra configuration needed.
 
 ---
 
@@ -121,7 +123,7 @@ tag_rules:
 ```python
 result = tsqc.check(df, rules="tsqc_rules.yaml")
 result.summary()           # DataFrame: pct_good/sus/bad per tag
-result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, duration)
+result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, duration, reasons)
 result.check_timestamps()  # DataFrame: gap/duplicate/non_monotonic issues
 result.export_report("report.html")  # Full HTML with chart + all tables
 ```
@@ -152,7 +154,7 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
-## Known Limitations (v0.1.0)
+## Known Limitations (v0.2.0)
 
 1. **Pandas only.** PySpark and Polars support are deferred.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.
