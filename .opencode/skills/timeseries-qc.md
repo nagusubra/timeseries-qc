@@ -1,0 +1,163 @@
+# timeseries-qc — AI Agent Skill File
+
+Quick reference for AI coding agents to correctly use the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.3.2).
+
+**Library purpose:** Classify time series data rows as `good` / `sus` / `bad` using business rules, with a multi-tag horizontal timeline chart.
+
+**Install:** `pip install timeseries-qc`
+**Requires:** Python >= 3.9, pandas >= 1.5, plotly >= 5.0, pyyaml >= 6.0
+
+---
+
+## One-Shot Pattern (covers 80% of use)
+
+```python
+import tsqc
+import pandas as pd
+
+df = pd.read_csv("sensor_data.csv")          # columns: timestamp, tag_name, value
+result = tsqc.check(df, assume_tz="UTC")     # assume_tz required for tz-naive CSVs
+result.plot().show()                          # interactive quality timeline
+```
+
+## Column Contract
+
+| Column | Required | Type | Notes |
+|--------|----------|------|-------|
+| `timestamp` | Yes | datetime | Tz-naive input requires `assume_tz` (IANA name like `"America/Chicago"`) |
+| `tag_name` | No | str | Omit column or pass `tag_col=None` for single-tag mode |
+| `value` | Yes | float | The measurement to check |
+
+Use `time_col=`, `tag_col=`, `value_col=` parameters to customize column names.
+
+## Output Schema
+
+`result.df` adds two columns to the original DataFrame:
+
+| Column | Values | Notes |
+|--------|--------|-------|
+| `quality` | `"good"`, `"sus"`, `"bad"` | Worst-level rule wins across all rules |
+| `quality_reasons` | e.g. `"flatline\|range"` | Pipe-delimited names of triggered rules |
+
+## Rules (YAML — preferred approach)
+
+### YAML Syntax Reference
+
+```yaml
+default_rules:
+  - check: null          # YAML null maps to Python None → parser handles it
+    level: bad
+  - check: flatline
+    window: 1h           # pandas offset alias
+    min_delta: 0.001     # minimum change to NOT flag (default 0.0)
+    min_duration: 30min  # optional: suppress short flat runs
+    level: sus
+  - check: delta
+    min_delta: 0.5       # flags changes below this (stuck sensor)
+    max_delta: 50.0      # flags changes above this (spike)
+    level: sus           # at least one of min/max_delta required
+
+tag_rules:
+  FOREBAY.LEVEL:
+    - check: range
+      min: 900
+      max: 1100
+      level: bad
+  "GENERATOR.*":         # glob pattern matching for tag names
+    - check: range
+      min: 0
+      max: 200
+      level: bad
+    - check: flatline
+      window: 30min
+      min_delta: 0.5
+      level: sus
+```
+
+**Important:** Tag-specific rules ADD to default rules — they do NOT replace them. Both apply, worst level wins.
+
+### Usage
+
+```python
+result = tsqc.check(df, rules="tsqc_rules.yaml")
+```
+
+## Built-in Rules Reference
+
+| Rule | Flags | Default Level | Required Params | Optional Params |
+|------|-------|---------------|-----------------|-----------------|
+| `NullRule` | `NaN` / `None` / `pd.NA` | `bad` | — | `level` |
+| `FlatlineRule` | Stuck/frozen sensor (rolling std <= min_delta over window) | `sus` | `window` (e.g. `"1h"`) | `min_delta`, `min_duration`, `level` |
+| `DeltaRule` | Point-to-point spike or stuck | `sus` | `min_delta` or `max_delta` (>= 1) | `level` |
+| `RangeRule` | Out of bounds | `bad` | `min` or `max` (>= 1) | `level` |
+
+When no rules are provided, auto-defaults use 3-sigma delta thresholding.
+
+When multiple rules fire for the same row: **bad > sus > good** (worst level wins).
+
+## Custom Rules (Python)
+
+```python
+from tsqc import CustomRule
+
+rules = [
+    CustomRule(lambda s: s > 100, name="high_temp", level="bad"),
+]
+result = tsqc.check(df, rules=rules, assume_tz="UTC")
+```
+
+## QCResult Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `result.summary()` | `pd.DataFrame` | Per-tag `%good`, `%sus`, `%bad` sorted by `pct_bad` descending |
+| `result.issue_summary()` | `pd.DataFrame` | Contiguous issue runs with start/end/duration/reasons |
+| `result.check_timestamps()` | `pd.DataFrame` | Gap / duplicate / non-monotonic / freq_drift / DST issues |
+| `result.plot(tags, start, end, title, height)` | `plotly.graph_objects.Figure` | Multi-tag Gantt-style quality timeline with range selector |
+| `result.export_report("report.html")` | `None` | Self-contained HTML report (no CDN) with chart + all tables |
+
+## Timezone Handling
+
+| Input | What to do | Output timezone |
+|-------|------------|-----------------|
+| Tz-naive (e.g., CSV) | **Always** pass `assume_tz="America/Edmonton"` (or your IANA zone) | The `assume_tz` zone |
+| Tz-aware (ISO 8601 with offset) | `assume_tz` is optional; auto-detected from data | Original input timezone |
+
+All output (chart, `result.df`, summaries) shows timestamps in the original timezone.
+
+## Synthetic Data for Testing
+
+```python
+import tsqc
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    "timestamp": pd.date_range("2026-01-01", periods=100, freq="1h", tz="UTC"),
+    "tag_name": ["SENSOR.A"] * 50 + ["SENSOR.B"] * 50,
+    "value": np.random.normal(50, 5, 100),
+})
+df.loc[10:15, "value"] = np.nan       # inject nulls → bad
+df.loc[30:35, "value"] = 0.0          # inject flatline → sus
+df.loc[45, "value"] = 9999            # inject spike → sus
+
+result = tsqc.check(df)
+result.summary()
+result.plot().show()
+```
+
+## Common Mistakes (AI Watch-Outs)
+
+1. **Missing `assume_tz`** — CSV/tz-naive data requires `assume_tz`. Fails with `ValueError` if omitted.
+2. **YAML `check: null`** — YAML parses bare `null` to Python `None`. The parser maps it back to `"null"`. Do NOT quote it as `"null"`.
+3. **Wrong column names** — Defaults are `timestamp`, `tag_name`, `value`. Pass `time_col=`, `tag_col=`, `value_col=` to override.
+4. **Tag rules override misconception** — Tag rules add to defaults. Both fire, worst wins.
+5. **`assume_tz` ignored when data already has tz** — A warning is issued but no error; the existing timezone is used.
+
+## Links
+
+- [PyPI](https://pypi.org/project/timeseries-qc/)
+- [GitHub](https://github.com/nagusubra/timeseries-qc)
+- [Full Documentation](https://nagusubra.github.io/timeseries-qc/)
+- [YAML Configuration Guide](https://nagusubra.github.io/timeseries-qc/yaml-configuration/)
+- [Rule Engine Details](https://nagusubra.github.io/timeseries-qc/rules/)
