@@ -125,6 +125,8 @@ nav:
     - FAQ: faq.md
     - Glossary: glossary.md
     - Troubleshooting: troubleshooting.md
+  - AI Agent:
+    - Skill File: timeseries-qc.md
   - Project:
     - Overview: project/index.md
     - Roadmap: roadmap.md
