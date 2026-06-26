@@ -11,7 +11,7 @@ from tsqc.checker import check
 from tsqc.result import QCResult
 from tsqc.rules.builtins import CustomRule, DeltaRule, FlatlineRule, NullRule, RangeRule
 
-__version__ = "0.2.0"
+__version__ = "0.3.2"
 __all__ = [
     "check",
     "QCResult",

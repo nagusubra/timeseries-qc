@@ -20,7 +20,7 @@ def rules_yaml(tmp_path: Path) -> Path:
             min_delta: 0.001
             level: sus
           - check: delta
-            threshold: 50.0
+            max_delta: 50.0
             level: sus
 
         tag_rules:
@@ -61,11 +61,12 @@ class TestParseYamlRules:
         assert flatline.window == "1h"
         assert flatline.min_delta == 0.001
 
-    def test_delta_threshold_parsed(self, rules_yaml):
+    def test_delta_max_delta_parsed(self, rules_yaml):
         parsed = parse_yaml_rules(str(rules_yaml))
         delta = parsed["default"][2]
         assert isinstance(delta, DeltaRule)
-        assert delta.threshold == 50.0
+        assert delta.max_delta == 50.0
+        assert delta.min_delta is None
 
     def test_tag_specific_rules_parsed(self, rules_yaml):
         parsed = parse_yaml_rules(str(rules_yaml))
@@ -144,10 +145,10 @@ class TestYamlErrors:
         with pytest.raises(ValueError, match="'window' is required"):
             parse_yaml_rules(str(p))
 
-    def test_delta_missing_threshold_raises(self, tmp_path):
+    def test_delta_missing_both_bounds_raises(self, tmp_path):
         p = tmp_path / "bad.yaml"
         p.write_text("default_rules:\n  - check: delta\n    level: sus\n")
-        with pytest.raises(ValueError, match="'threshold' is required"):
+        with pytest.raises(ValueError, match="At least one of 'min_delta' or 'max_delta'"):
             parse_yaml_rules(str(p))
 
     def test_range_missing_bounds_raises(self, tmp_path):
@@ -155,6 +156,42 @@ class TestYamlErrors:
         p.write_text("default_rules:\n  - check: range\n    level: bad\n")
         with pytest.raises(ValueError, match="At least one of 'min' or 'max'"):
             parse_yaml_rules(str(p))
+
+    def test_delta_min_delta_parsed(self, tmp_path):
+        p = tmp_path / "r.yaml"
+        p.write_text("default_rules:\n  - check: delta\n    min_delta: 0.5\n    level: sus\n")
+        parsed = parse_yaml_rules(str(p))
+        delta = parsed["default"][0]
+        assert delta.min_delta == 0.5
+        assert delta.max_delta is None
+
+    def test_delta_both_bounds_parsed(self, tmp_path):
+        p = tmp_path / "r.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: delta\n"
+            "    min_delta: 0.5\n"
+            "    max_delta: 100.0\n"
+            "    level: sus\n"
+        )
+        parsed = parse_yaml_rules(str(p))
+        delta = parsed["default"][0]
+        assert delta.min_delta == 0.5
+        assert delta.max_delta == 100.0
+
+    def test_flatline_min_duration_parsed(self, tmp_path):
+        p = tmp_path / "r.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: flatline\n"
+            "    window: 1h\n"
+            "    min_duration: 30min\n"
+            "    level: sus\n"
+        )
+        parsed = parse_yaml_rules(str(p))
+        fl = parsed["default"][0]
+        assert fl.min_duration == "30min"
+        assert fl.window == "1h"
 
     def test_error_message_includes_rule_index(self, tmp_path):
         p = tmp_path / "bad.yaml"

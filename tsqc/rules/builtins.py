@@ -28,11 +28,18 @@ class FlatlineRule(Rule):
     """Flag rows where the value has not changed by more than min_delta
     within the preceding *window* time window.
 
+    An optional *min_duration* filter suppresses flags for flat runs
+    that are shorter than the given duration — useful when short-lived
+    flat periods are normal (e.g. pump starts, cloud edges).
+
     Default level: "sus"
 
     Parameters:
         window: pandas offset alias, e.g. "1h", "30min".
         min_delta: minimum required change to NOT be flagged. Default 0.0.
+        min_duration: minimum duration a continuous flat run must last
+            before rows are flagged. pandas offset string or None.
+            None = no filter (current behaviour). Example: "30min", "2h".
     """
 
     name = "flatline"
@@ -41,11 +48,13 @@ class FlatlineRule(Rule):
         self,
         window: str = "1h",
         min_delta: float = 0.0,
+        min_duration: str | None = None,
         level: str = "sus",
     ) -> None:
         super().__init__(level=level)
         self.window = window
         self.min_delta = min_delta
+        self.min_duration = min_duration
 
     def check(self, series: pd.Series) -> pd.Series:
         # NaN rows must NOT be flagged — NullRule handles them.
@@ -62,42 +71,110 @@ class FlatlineRule(Rule):
         flagged = rolling_std <= self.min_delta
 
         # Only flag non-NaN rows
-        return flagged & not_nan
+        flagged = flagged & not_nan
+
+        # Optional: suppress short flatline runs
+        if self.min_duration is not None:
+            flagged = self._filter_short_flatlines(flagged)
+
+        return flagged
+
+    def _filter_short_flatlines(self, flagged: pd.Series) -> pd.Series:
+        """Remove flagged runs whose total time span < min_duration."""
+        min_dur = pd.Timedelta(self.min_duration)
+        result = flagged.copy()
+        vals = flagged.to_numpy()
+        idx = flagged.index  # monotonic DatetimeIndex
+
+        i = 0
+        n = len(vals)
+        while i < n:
+            if not vals[i]:
+                i += 1
+                continue
+            # Start of a flagged run
+            run_start = i
+            while i < n and vals[i]:
+                i += 1
+            run_end = i - 1
+            span = idx[run_end] - idx[run_start]
+            if span < min_dur:
+                result.iloc[run_start : i] = False
+
+        return result
 
     def __repr__(self) -> str:
-        return (
-            f"FlatlineRule(window={self.window!r}, "
-            f"min_delta={self.min_delta}, level={self.level!r})"
-        )
+        parts = [
+            f"window={self.window!r}",
+            f"min_delta={self.min_delta}",
+        ]
+        if self.min_duration is not None:
+            parts.append(f"min_duration={self.min_duration!r}")
+        parts.append(f"level={self.level!r}")
+        return f"FlatlineRule({', '.join(parts)})"
 
 
 class DeltaRule(Rule):
-    """Flag rows where the absolute change from the previous row exceeds threshold.
+    """Flag rows based on the absolute change from the previous reading.
 
-    Useful for detecting sensor spikes or step changes.
+    Supports two independent thresholds:
+        - *max_delta*: flags when the absolute change is **too large**
+          (sensor spike / step change).
+        - *min_delta*: flags when the absolute change is **too small**
+          (stuck / frozen sensor).
+
+    At least one of *min_delta* or *max_delta* must be provided.
     Default level: "sus"
 
     Parameters:
-        threshold: maximum allowed absolute change between consecutive readings.
+        min_delta: minimum required absolute change. Changes below this
+            are flagged. None = no lower bound.
+        max_delta: maximum allowed absolute change. Changes above this
+            are flagged. None = no upper bound.
     """
 
     name = "delta"
 
-    def __init__(self, threshold: float, level: str = "sus") -> None:
+    def __init__(
+        self,
+        min_delta: float | None = None,
+        max_delta: float | None = None,
+        level: str = "sus",
+    ) -> None:
         super().__init__(level=level)
-        self.threshold = threshold
+        if min_delta is None and max_delta is None:
+            raise ValueError(
+                "At least one of min_delta or max_delta is required."
+            )
+        self.min_delta = min_delta
+        self.max_delta = max_delta
 
     def check(self, series: pd.Series) -> pd.Series:
         # First row always False (no previous row)
         # NaN rows: return False — NullRule handles them
         diff = series.diff().abs()
-        flagged = diff > self.threshold
+        not_nan = series.notna()
+
+        flagged = pd.Series(False, index=series.index, dtype=bool)
+
+        if self.max_delta is not None:
+            flagged = flagged | (diff > self.max_delta)
+        if self.min_delta is not None:
+            # NaN (first row) comparison returns False, so first row is safe
+            flagged = flagged | (diff < self.min_delta)
+
         # Mask out rows where the value itself is NaN
-        flagged = flagged & series.notna()
+        flagged = flagged & not_nan
         return flagged.fillna(False)
 
     def __repr__(self) -> str:
-        return f"DeltaRule(threshold={self.threshold}, level={self.level!r})"
+        parts = []
+        if self.min_delta is not None:
+            parts.append(f"min_delta={self.min_delta}")
+        if self.max_delta is not None:
+            parts.append(f"max_delta={self.max_delta}")
+        parts.append(f"level={self.level!r}")
+        return f"DeltaRule({', '.join(parts)})"
 
 
 class RangeRule(Rule):

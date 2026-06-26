@@ -120,20 +120,28 @@ rule = NullRule(level="bad")
 
 Flag rows where the value has not changed by more than `min_delta` within the preceding `window`.
 
+Optional `min_duration` suppresses flags for flat runs shorter than the given duration.
+
 ```python
 from tsqc import FlatlineRule
 
 rule = FlatlineRule(window="1h", min_delta=0.001, level="sus")
+rule = FlatlineRule(window="5min", min_delta=0.0, min_duration="30min", level="sus")
 ```
 
 ### `DeltaRule`
 
-Flag rows where the absolute change from the previous row exceeds `threshold`.
+Flag rows based on the absolute change from the previous reading. Supports
+two independent thresholds: `max_delta` (spikes) and `min_delta` (stuck sensor).
+
+At least one of `min_delta` or `max_delta` must be provided.
 
 ```python
 from tsqc import DeltaRule
 
-rule = DeltaRule(threshold=50.0, level="sus")
+rule = DeltaRule(max_delta=100.0, level="sus")       # spike detection
+rule = DeltaRule(min_delta=0.5, level="sus")          # stuck sensor
+rule = DeltaRule(min_delta=0.5, max_delta=100.0)      # both
 ```
 
 ### `RangeRule`

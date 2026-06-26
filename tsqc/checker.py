@@ -92,11 +92,11 @@ def _normalize_timestamps(
 def _build_default_rules(series: pd.Series) -> list[Rule]:
     """Build the default rule set for a single-tag series (3-sigma delta)."""
     std = series.std()
-    threshold = 3 * std if pd.notna(std) and std > 0 else float("inf")
+    max_delta = 3 * std if pd.notna(std) and std > 0 else float("inf")
     return [
         NullRule(level="bad"),
         FlatlineRule(window="1h", min_delta=0.0, level="sus"),
-        DeltaRule(threshold=threshold, level="sus"),
+        DeltaRule(max_delta=max_delta, level="sus"),
     ]
 
 

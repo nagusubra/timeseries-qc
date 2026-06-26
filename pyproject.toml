@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "timeseries-qc"
-version = "0.3.1"
+version = "0.3.2"
 description = "Classify timeseries data as Good / Sus / Bad based on logic and business rules and render a multi-tag quality timeline chart."
 readme = "README.md"
 requires-python = ">=3.9"

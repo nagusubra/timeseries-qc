@@ -19,7 +19,7 @@ default_rules:
     min_delta: 0.001
     level: sus
   - check: delta
-    threshold: 50.0
+    max_delta: 50.0
     level: sus
 
 tag_rules:
@@ -54,8 +54,8 @@ Rules applied to **specific** tags only, identified by tag name or glob pattern.
 | Check | Parameters | Default Level |
 |-------|-----------|---------------|
 | `null` | none | `bad` |
-| `flatline` | `window` (required), `min_delta` | `sus` |
-| `delta` | `threshold` (required) | `sus` |
+| `flatline` | `window` (required), `min_delta`, `min_duration` | `sus` |
+| `delta` | `min_delta`, `max_delta` (at least one required) | `sus` |
 | `range` | `min`, `max` (at least one required) | `bad` |
 
 ## Glob Pattern Matching

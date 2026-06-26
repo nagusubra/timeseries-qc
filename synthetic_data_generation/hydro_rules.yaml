@@ -11,7 +11,7 @@ default_rules:
     level: bad
 
   - check: delta
-    threshold: 100.0
+    max_delta: 100.0
     level: sus
 
 # Tag-specific rules that add to (not replace) the default rules above
@@ -30,7 +30,7 @@ tag_rules:
       level: bad
     # Forebay jump > 5 ft/min is a sensor fault
     - check: delta
-      threshold: 5.0
+      max_delta: 5.0
       level: sus
 
   TAILRACE.LEVEL:
@@ -43,7 +43,7 @@ tag_rules:
       max: 900.0
       level: bad
     - check: delta
-      threshold: 10.0
+      max_delta: 10.0
       level: sus
 
   GENERATOR.MW:
@@ -71,5 +71,5 @@ tag_rules:
       level: bad
     # Inflow spikes > 5000 CFS/min are instrument artefacts (not real hydrology)
     - check: delta
-      threshold: 5000.0
+      max_delta: 5000.0
       level: sus
