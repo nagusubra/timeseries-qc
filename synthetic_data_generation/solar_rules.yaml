@@ -26,7 +26,7 @@ tag_rules:
       level: bad
     # Step change > 5 MW/hour on a 10 MW plant is a fault (not normal ramp)
     - check: delta
-      threshold: 5.0
+      max_delta: 5.0
       level: sus
     # Inverter flatline during daylight is suspicious.
     # min_delta=0.05 avoids flagging true nighttime zeros (all equal to ~0).
@@ -44,7 +44,7 @@ tag_rules:
       level: bad
     # Step change > 400 W/m²/hour is physically implausible (not a passing cloud edge)
     - check: delta
-      threshold: 400.0
+      max_delta: 400.0
       level: sus
     # Pyranometer stuck (comm-freeze) during daylight — 2h window
     # min_delta=1.0 avoids flagging true nighttime flat zeros
@@ -61,7 +61,7 @@ tag_rules:
       level: bad
     # Angular step > 30°/hour is a fault (normal max slew ~15°/hour)
     - check: delta
-      threshold: 30.0
+      max_delta: 30.0
       level: sus
     # Tracker stuck for >4h during daytime is suspicious (controller fault).
     # min_delta=1.0 avoids flagging legitimate nighttime park at 0°.

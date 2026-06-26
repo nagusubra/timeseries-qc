@@ -55,17 +55,29 @@ def _build_rule(spec: dict[str, Any], context: str) -> Rule:
                 f"  Example: {{check: flatline, window: 1h, min_delta: 0.001, level: sus}}"
             )
         min_delta = float(spec.get("min_delta", 0.0))
-        return FlatlineRule(window=str(window), min_delta=min_delta, level=level)
+        min_duration = spec.get("min_duration")
+        return FlatlineRule(
+            window=str(window),
+            min_delta=min_delta,
+            min_duration=str(min_duration) if min_duration is not None else None,
+            level=level,
+        )
 
     if check_name == "delta":
-        threshold = spec.get("threshold")
-        if threshold is None:
+        min_delta = spec.get("min_delta")
+        max_delta = spec.get("max_delta")
+        if min_delta is None and max_delta is None:
             raise ValueError(
-                f"{context}: 'threshold' is required for check: delta.\n"
+                f"{context}: At least one of 'min_delta' or 'max_delta' "
+                f"is required for check: delta.\n"
                 f"  Got keys: {list(spec.keys())}.\n"
-                f"  Example: {{check: delta, threshold: 50.0, level: sus}}"
+                f"  Example: {{check: delta, min_delta: 0.5, max_delta: 100.0, level: sus}}"
             )
-        return DeltaRule(threshold=float(threshold), level=level)
+        return DeltaRule(
+            min_delta=float(min_delta) if min_delta is not None else None,
+            max_delta=float(max_delta) if max_delta is not None else None,
+            level=level,
+        )
 
     if check_name == "range":
         min_val = spec.get("min")

@@ -26,7 +26,7 @@ tag_rules:
       level: bad
     # Step change > 100 psig/hour is a sensor fault (not normal pump cycling)
     - check: delta
-      threshold: 100.0
+      max_delta: 100.0
       level: sus
     # Pressure flatline during normal operation is suspicious.
     # min_delta=0.5 avoids flagging transiently-stable periods of normal flow.
@@ -44,7 +44,7 @@ tag_rules:
       level: bad
     # Step change > 800 Mscfd/hour is a fault (not normal demand variation)
     - check: delta
-      threshold: 800.0
+      max_delta: 800.0
       level: sus
     # Comm-freeze or stuck meter — 4 h window
     # min_delta=5.0 allows natural low-volatility flow periods
@@ -61,7 +61,7 @@ tag_rules:
       level: bad
     # Step change > 15 °F/hour is a sensor fault or emergency shutdown
     - check: delta
-      threshold: 15.0
+      max_delta: 15.0
       level: sus
     # Heater stuck / temp sensor flatline for >6 h
     # min_delta=0.5 prevents false flags during tight steady-state control

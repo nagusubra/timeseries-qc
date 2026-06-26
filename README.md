@@ -100,7 +100,7 @@ default_rules:
     min_delta: 0.001
     level: sus
   - check: delta
-    threshold: 50.0
+    max_delta: 50.0
     level: sus
 
 tag_rules:
@@ -154,12 +154,11 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
-## Known Limitations (v0.2.0)
+## Known Limitations (v0.3.2)
 
 1. **Pandas only.** PySpark and Polars support are deferred.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.
 3. **Visualization requires Plotly ≥ 5.0.** Matplotlib output not supported.
-4. **`DeltaRule` is point-to-point diff only.** Rolling-window delta is a v0.2 feature.
 
 ---
 

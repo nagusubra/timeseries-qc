@@ -26,21 +26,68 @@ Flags rows where the value is `NaN`, `None`, or `pd.NA`.
 
 Flags rows where the value has not changed by more than `min_delta` within the preceding `window` time window.
 
+An optional `min_duration` filter suppresses flags for flat runs that are shorter
+than the given duration — useful when short-lived flat periods are normal
+(e.g. pump starts, cloud edges).
+
 - Default level: `sus`
-- Parameters: `window` (pandas offset alias), `min_delta` (minimum required change)
-- Configuration: `{check: flatline, window: 1h, min_delta: 0.001, level: sus}
+- Parameters:
+  - `window` (required) — pandas offset alias, e.g. `"1h"`, `"30min"`
+  - `min_delta` (optional, default `0.0`) — minimum required change to NOT be flagged
+  - `min_duration` (optional) — pandas offset string; minimum time a continuous flat run must last before rows are flagged. `None` = no filter
+- Configuration:
+  ```yaml
+  - check: flatline
+    window: 1h
+    min_delta: 0.001
+    level: sus
+  ```
+  With min_duration:
+  ```yaml
+  - check: flatline
+    window: 5min
+    min_delta: 0.001
+    min_duration: 30min
+    level: sus
+  ```
 
 **DST behaviour:** The `window` parameter is measured in **elapsed UTC time** (not wall-clock time). Timestamps are normalised to UTC internally before rule evaluation, so `FlatlineRule(window="1h")` means one elapsed UTC hour. During DST transitions:
 - **Spring-forward:** One local wall-clock hour of flat data will span less UTC time (a shorter window), so the rule may flag fewer points than expected.
-- **Fall-back:** Ambiguous timestamps are dropped (set to `NaT` and flagged as `bad`), so the rule never evaluates on duplicate local-time rows.`
+- **Fall-back:** Ambiguous timestamps are dropped (set to `NaT` and flagged as `bad`), so the rule never evaluates on duplicate local-time rows.
 
 ### DeltaRule
 
-Flags rows where the absolute change from the previous row exceeds `threshold`.
+Flags rows based on the absolute change from the previous reading. Two
+independent thresholds are supported:
+
+- **`max_delta`** — flags when the change is **too large** (sensor spike / step change)
+- **`min_delta`** — flags when the change is **too small** (stuck / frozen sensor)
+
+At least one of `min_delta` or `max_delta` must be provided.
 
 - Default level: `sus`
-- Parameters: `threshold` (maximum allowed absolute change)
-- Configuration: `{check: delta, threshold: 50.0, level: sus}`
+- Parameters:
+  - `min_delta` (optional) — minimum required absolute change; changes below this are flagged
+  - `max_delta` (optional) — maximum allowed absolute change; changes above this are flagged
+- Configuration (only max):
+  ```yaml
+  - check: delta
+    max_delta: 100.0
+    level: sus
+  ```
+  Only min (stuck sensor):
+  ```yaml
+  - check: delta
+    min_delta: 0.5
+    level: sus
+  ```
+  Both bounds:
+  ```yaml
+  - check: delta
+    min_delta: 0.5
+    max_delta: 100.0
+    level: sus
+  ```
 
 ### RangeRule
 
@@ -85,7 +132,7 @@ When no rules are provided, `timeseries-qc` auto-configures rules using 3-sigma 
 ```python
 NullRule(level="bad")
 FlatlineRule(window="1h", min_delta=0.0, level="sus")
-DeltaRule(threshold=3 * std, level="sus")
+DeltaRule(max_delta=3 * std, level="sus")
 ```
 
 ## Next Steps

@@ -85,37 +85,130 @@ class TestFlatlineRule:
         flagged = rule.check(s)
         assert flagged.sum() == 0
 
+    # ── min_duration ────────────────────────────────────────────────────
+
+    def test_min_duration_suppresses_short_flatline(self):
+        # 10 min of flat data at 1-min freq; min_duration=30min → should suppress
+        s = _make_series([42.0] * 10 + [float(i) for i in range(50)], freq="1min")
+        rule = FlatlineRule(window="5min", min_delta=0.0, min_duration="30min")
+        flagged = rule.check(s)
+        assert flagged.sum() == 0, "Short flat run should be suppressed"
+
+    def test_min_duration_allows_long_flatline(self):
+        # 35 min of flat data at 1-min freq; min_duration=30min → should flag
+        s = _make_series([42.0] * 35 + [float(i) for i in range(25)], freq="1min")
+        rule = FlatlineRule(window="5min", min_delta=0.0, min_duration="30min")
+        flagged = rule.check(s)
+        assert flagged.iloc[30:35].any(), "Long flat run should survive filter"
+
+    def test_min_duration_does_not_affect_varying_data(self):
+        s = _make_series([float(i) for i in range(60)], freq="1min")
+        rule = FlatlineRule(window="10min", min_delta=0.0, min_duration="30min")
+        flagged = rule.check(s)
+        assert flagged.sum() == 0
+
+    def test_min_duration_none_is_noop(self):
+        # Same as default behaviour — no filtering
+        s = _make_series([42.0] * 10 + [float(i) for i in range(50)], freq="1min")
+        rule = FlatlineRule(window="5min", min_delta=0.0, min_duration=None)
+        flagged = rule.check(s)
+        assert flagged.iloc[4:10].any(), "None min_duration should not filter"
+
 
 # ─────────────────────────────  DeltaRule  ─────────────────────────────────
 
 class TestDeltaRule:
-    def test_flags_spike(self):
+    # ── max_delta (replaces old `threshold`) ────────────────────────────
+
+    def test_max_delta_flags_spike(self):
         values = [1.0] * 10 + [500.0] + [1.0] * 10
         s = _make_series(values)
-        rule = DeltaRule(threshold=100.0)
+        rule = DeltaRule(max_delta=100.0)
         flagged = rule.check(s)
         # Row at index 10 (the spike) and row 11 (return) should be flagged
         assert flagged.iloc[10] == True
 
-    def test_does_not_flag_gradual_changes(self):
+    def test_max_delta_does_not_flag_gradual_changes(self):
         s = _make_series([float(i) for i in range(20)])
-        rule = DeltaRule(threshold=5.0)
+        rule = DeltaRule(max_delta=5.0)
         flagged = rule.check(s)
         assert flagged.sum() == 0
 
-    def test_first_row_not_flagged(self):
+    def test_first_row_not_flagged_max_delta(self):
         s = _make_series([1000.0, 1.0, 1.0])
-        rule = DeltaRule(threshold=0.5)
+        rule = DeltaRule(max_delta=0.5)
         flagged = rule.check(s)
         assert flagged.iloc[0] == False
 
+    # ── min_delta (new — flags too-small changes) ───────────────────────
+
+    def test_min_delta_flags_stuck_sensor(self):
+        # Three identical readings — change of 0.0 is below min_delta
+        s = _make_series([42.0, 42.0, 42.0, 50.0])
+        rule = DeltaRule(min_delta=1.0)
+        flagged = rule.check(s)
+        # Row 1 and 2 have zero change — should be flagged
+        assert flagged.iloc[1] == True
+        assert flagged.iloc[2] == True
+
+    def test_min_delta_first_row_not_flagged(self):
+        s = _make_series([1000.0, 1000.0, 1000.0])
+        rule = DeltaRule(min_delta=0.5)
+        flagged = rule.check(s)
+        assert flagged.iloc[0] == False, "First row must never be flagged"
+
+    def test_min_delta_does_not_flag_nan_rows(self):
+        values = [1.0, float("nan"), 2.0]
+        s = _make_series(values)
+        rule = DeltaRule(min_delta=0.5)
+        flagged = rule.check(s)
+        assert flagged.iloc[1] == False
+
+    # ── both bounds ─────────────────────────────────────────────────────
+
+    def test_both_bounds_independent(self):
+        """min_delta and max_delta work independently — flag both edges."""
+        values = [1.0, 1.0, 50.0, 500.0, 501.0]
+        s = _make_series(values)
+        rule = DeltaRule(min_delta=1.0, max_delta=100.0)
+        flagged = rule.check(s)
+        # Row 1: diff=0   → flagged by min (change too small)
+        # Row 2: diff=49  → not flagged (1 <= 49 <= 100)
+        # Row 3: diff=450 → flagged by max (change too large)
+        # Row 4: diff=1   → not flagged (1 <= 1 <= 100) ... actually 1 < 1 is False, 1 == 1 is not < 1, so not flagged by min
+        #                   and 1 <= 100, so not flagged by max
+        assert flagged.iloc[1] == True, "zero change flagged by min_delta"
+        assert flagged.iloc[2] == False, "moderate change not flagged"
+        assert flagged.iloc[3] == True, "large change flagged by max_delta"
+        assert flagged.iloc[4] == False, "return change within bounds"
+
+    def test_min_and_max_both_none_raises(self):
+        with pytest.raises(ValueError, match="At least one of min_delta or max_delta"):
+            DeltaRule()
+
+    def test_only_min_delta_works(self):
+        s = _make_series([1.0, 1.0, 100.0])
+        rule = DeltaRule(min_delta=0.1)
+        flagged = rule.check(s)
+        assert flagged.iloc[1] == True
+        assert flagged.iloc[2] == False  # large change is irrelevant without max_delta
+
+    def test_only_max_delta_works(self):
+        s = _make_series([1.0, 1.0, 500.0])
+        rule = DeltaRule(max_delta=100.0)
+        flagged = rule.check(s)
+        assert flagged.iloc[1] == False  # zero change is irrelevant without min_delta
+        assert flagged.iloc[2] == True
+
+    # ── shared ──────────────────────────────────────────────────────────
+
     def test_default_level_is_sus(self):
-        assert DeltaRule(threshold=10.0).level == "sus"
+        assert DeltaRule(max_delta=10.0).level == "sus"
 
     def test_does_not_flag_nan_rows(self):
         values = [1.0, float("nan"), 3.0]
         s = _make_series(values)
-        rule = DeltaRule(threshold=0.5)
+        rule = DeltaRule(max_delta=0.5)
         flagged = rule.check(s)
         assert flagged.iloc[1] == False
 

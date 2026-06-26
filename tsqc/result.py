@@ -307,7 +307,7 @@ class QCResult:
 
         n_tags = len(summary_df)
         n_rows = len(self._df)
-        run_ts = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        run_ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
         def _df_to_html_table(df: pd.DataFrame, table_id: str = "") -> str:
             if df.empty:

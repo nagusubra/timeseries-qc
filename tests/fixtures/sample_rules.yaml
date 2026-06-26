@@ -11,7 +11,7 @@ default_rules:
     level: sus
 
   - check: delta
-    threshold: 50.0
+    max_delta: 50.0
     level: sus
 
 # Tag-specific rules (merged with default_rules)
@@ -34,5 +34,5 @@ tag_rules:
 
   "TAG_*":
     - check: delta
-      threshold: 80.0
+      max_delta: 80.0
       level: sus
