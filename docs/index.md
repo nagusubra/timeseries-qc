@@ -64,9 +64,9 @@ Null, Flatline, Delta, and Range rules cover the majority of real-world sensor f
 Plotly horizontal Gantt chart with one row per tag, color-coded by quality, interactive hover, and range selector.
 </div>
 <div class="tsqc-grid-item" markdown="1">
-**YAML Configuration**
+**External Quality Column**
 
-Write rules in a plain text file. No Python required. Glob patterns supported for tag matching.
+Use a pre-existing historian quality column exclusively or merged with internal rules. Supports exclusive/combined/none modes.
 </div>
 <div class="tsqc-grid-item" markdown="1">
 **Timestamp Health**
@@ -74,11 +74,15 @@ Write rules in a plain text file. No Python required. Glob patterns supported fo
 Detects gaps, duplicates, non-monotonic timestamps, frequency drift, and DST ambiguities.
 </div>
 <div class="tsqc-grid-item" markdown="1">
+**YAML Configuration**
+
+Write rules in a plain text file. No Python required. Glob patterns supported for tag matching.
+</div>
+<div class="tsqc-grid-item" markdown="1">
 **Offline HTML Report**
 
 Self-contained export with embedded Plotly chart, summary tables, and per-issue breakdown. No CDN needed.
-</div>
-<div class="tsqc-grid-item" markdown="1">
+
 **Pandas Native**
 
 Works with any DataFrame containing timestamp, tag_name, and value columns. Single-tag mode supported.
@@ -144,7 +148,7 @@ default_rules:
     min_delta: 0.001
     level: sus
   - check: delta
-    threshold: 50.0
+    max_delta: 50.0
     level: sus
 
 tag_rules:
@@ -174,6 +178,25 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
+## External Quality Column (v0.4.0)
+
+Use a pre-existing quality/status column from your SCADA historian alongside or instead of internal rules:
+
+| Mode | Behavior |
+|------|----------|
+| `exclusive` | External quality **only**; no internal rules run |
+| `combined` | External + internal merged (worst-wins: bad > sus > good) |
+| `none` | Internal only; ignores external column (escape hatch) |
+
+```python
+result = tsqc.check(df, external_quality_col="status", quality_mode="combined",
+                     quality_map={0: "good", 1: "sus", 2: "bad"}, assume_tz="UTC")
+```
+
+See the [User Guide](user-guide.md) for full details.
+
+---
+
 ## Comparison with Alternatives
 
 | | timeseries-qc | Pecos | SaQC | Great Expectations |
@@ -194,12 +217,11 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
-## Known Limitations (v0.2.0)
+## Known Limitations (v0.4.0)
 
 1. **Pandas only.** PySpark and Polars support are planned.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.
 3. **Visualization requires Plotly ≥ 5.0.** Matplotlib output is not yet supported.
-4. **`DeltaRule` is point-to-point diff only.** Rolling-window delta is planned for v0.2.
 
 [View Roadmap &rarr;](roadmap.md)
 

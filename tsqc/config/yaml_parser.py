@@ -12,6 +12,7 @@ from tsqc.rules.base import Rule
 from tsqc.rules.builtins import DeltaRule, FlatlineRule, NullRule, RangeRule
 
 _KNOWN_CHECKS = {"null", "flatline", "delta", "range"}
+_VALID_QUALITY_LEVELS = {"good", "sus", "bad"}
 
 
 def _build_rule(spec: dict[str, Any], context: str) -> Rule:
@@ -133,7 +134,23 @@ def parse_yaml_rules(path: str) -> dict[str, Any]:
             f"Got {type(raw).__name__}."
         )
 
-    result: dict[str, Any] = {"default": [], "tags": {}}
+    result: dict[str, Any] = {"default": [], "tags": {}, "quality_map": {}}
+
+    # --- quality_map (optional) ---
+    raw_qm = raw.get("quality_map", {})
+    if not isinstance(raw_qm, dict):
+        raise ValueError(
+            f"'quality_map' must be a mapping. Got {type(raw_qm).__name__}."
+        )
+    qm: dict = {}
+    for key, val in raw_qm.items():
+        if val not in _VALID_QUALITY_LEVELS:
+            raise ValueError(
+                f"quality_map value {val!r} is invalid. "
+                f"Must be one of {sorted(_VALID_QUALITY_LEVELS)}."
+            )
+        qm[key] = str(val)
+    result["quality_map"] = qm
 
     # --- default_rules ---
     default_specs = raw.get("default_rules", [])

@@ -5,6 +5,8 @@ from __future__ import annotations
 import zoneinfo
 from typing import TYPE_CHECKING
 
+import warnings as _warnings
+
 import numpy as np
 import pandas as pd
 
@@ -140,6 +142,81 @@ def _apply_rules_to_tag(
     )
 
 
+def _validate_quality_map(quality_map: dict) -> None:
+    """Raise ValueError if any quality_map value is not good/sus/bad."""
+    valid = {"good", "sus", "bad"}
+    for key, val in quality_map.items():
+        if val not in valid:
+            raise ValueError(
+                f"quality_map value {val!r} is invalid. "
+                f"Must be one of {sorted(valid)}."
+            )
+
+
+def _apply_external_quality_map(
+    ext_raw: pd.Series,
+    quality_map: dict,
+) -> tuple[pd.Series, pd.Series]:
+    """Map external quality values to good/sus/bad levels with reasons.
+
+    Returns:
+        quality: str Series ('good'/'sus'/'bad')
+        reasons: str Series with "external_quality: <raw_value>" for non-good rows
+    """
+    mapped = ext_raw.map(quality_map).fillna("bad")
+
+    raw_vals = ext_raw.to_numpy()
+    levels = mapped.to_numpy()
+    reasons_list: list[str] = []
+    for i, level in enumerate(levels):
+        if level != "good":
+            reasons_list.append(f"external_quality_value: {raw_vals[i]}")
+        else:
+            reasons_list.append("")
+
+    return (
+        pd.Series(levels, index=ext_raw.index, dtype=str),
+        pd.Series(reasons_list, index=ext_raw.index, dtype=str),
+    )
+
+
+def _merge_external_internal(
+    internal_q: pd.Series,
+    internal_r: pd.Series,
+    external_q: pd.Series,
+    external_r: pd.Series,
+) -> tuple[pd.Series, pd.Series]:
+    """Merge external quality with internal rules using worst-wins logic.
+
+    bad > sus > good — the worse level across both sources wins.
+    When external is worse, its reason is appended (pipe-delimited) to
+    the existing internal reason string.
+    """
+    level_order = {"good": 0, "sus": 1, "bad": 2}
+
+    merged_q = internal_q.copy()
+    merged_r = internal_r.copy()
+
+    for i in range(len(external_q)):
+        ext_level = external_q.iloc[i]
+        int_level = internal_q.iloc[i]
+
+        ext_val = level_order.get(ext_level, 2)
+        int_val = level_order.get(int_level, 0)
+
+        if ext_val > int_val:
+            merged_q.iloc[i] = ext_level
+            ext_reason = external_r.iloc[i]
+            if ext_reason:
+                int_reason = internal_r.iloc[i]
+                if int_reason:
+                    merged_r.iloc[i] = f"{int_reason}|{ext_reason}"
+                else:
+                    merged_r.iloc[i] = ext_reason
+
+    return merged_q, merged_r
+
+
 # --------------------------------------------------------------------------- #
 #  Public check() function
 # --------------------------------------------------------------------------- #
@@ -155,6 +232,9 @@ def check(
     quality_col: str = "quality",
     reasons_col: str = "quality_reasons",
     assume_tz: str | None = None,
+    external_quality_col: str | None = None,
+    quality_mode: str = "combined",
+    quality_map: dict | None = None,
 ) -> "QCResult":
     """Run quality checks on a timeseries DataFrame.
 
@@ -167,15 +247,43 @@ def check(
         quality_col: Output column name for quality label. Default "quality".
         reasons_col: Output column name for triggered rule names. Default "quality_reasons".
         assume_tz: IANA timezone name for tz-naive input. Required if timestamps have no tz.
+        external_quality_col: Name of a column in *df* that contains pre-existing
+            quality codes from a historian / SCADA system (e.g. 0=good, 1=sus, 2=bad).
+            None = feature disabled. Requires *quality_map* (dict or YAML) to define
+            how raw values map to good/sus/bad.
+        quality_mode: One of "exclusive", "combined", "none". Ignored when
+            *external_quality_col* is None.
+            - "exclusive" — use the external column **only**; skip all internal rules.
+            - "combined" — merge external + internal with worst-wins (bad > sus > good).
+            - "none" — ignore the external column; pure internal rules only.
+            Default "combined" when *external_quality_col* is provided.
+        quality_map: Dict mapping raw external quality values to tsqc levels, e.g.
+            {0: "good", 1: "sus", 2: "bad", 3: "bad", 4: "bad"}. Alternative to
+            defining the map in a YAML rules file. YAML takes precedence if both given.
 
     Returns:
         QCResult wrapping the annotated DataFrame.
 
     Raises:
         ValueError: Missing columns, unparseable timestamps, tz-naive without assume_tz,
-                    invalid assume_tz, missing YAML file.
+                    invalid assume_tz, missing YAML file, missing quality_map when required,
+                    invalid quality_mode or quality_map values.
     """
     from tsqc.result import QCResult  # avoid circular import
+
+    # --- Validate external_quality_col & quality_mode ---
+    _VALID_QUALITY_MODES = {"exclusive", "combined", "none"}
+    if external_quality_col is not None:
+        if external_quality_col not in df.columns:
+            raise ValueError(
+                f"Column {external_quality_col!r} (external_quality_col) not found "
+                f"in DataFrame. Available columns: {list(df.columns)}"
+            )
+        if quality_mode not in _VALID_QUALITY_MODES:
+            raise ValueError(
+                f"quality_mode must be one of {sorted(_VALID_QUALITY_MODES)}, "
+                f"got {quality_mode!r}."
+            )
 
     # --- Validate required columns ---
     required = [time_col, value_col]
@@ -199,6 +307,21 @@ def check(
     else:
         yaml_rules = None
 
+    # --- Resolve quality_map (YAML takes precedence over param) ---
+    resolved_quality_map: dict | None = None
+    if yaml_rules is not None and yaml_rules.get("quality_map"):
+        resolved_quality_map = yaml_rules["quality_map"]
+    elif quality_map is not None:
+        resolved_quality_map = quality_map
+    if external_quality_col is not None and quality_mode != "none" and resolved_quality_map is None:
+        raise ValueError(
+            f"external_quality_col={external_quality_col!r} requires a quality_map "
+            f"when quality_mode={quality_mode!r}. "
+            "Provide one via YAML rules file or the quality_map= parameter."
+        )
+    if resolved_quality_map is not None:
+        _validate_quality_map(resolved_quality_map)
+
     # --- Work on a copy ---
     out = df.copy()
 
@@ -219,6 +342,14 @@ def check(
     quality_parts = []
     reasons_parts = []
 
+    # Determine whether to run internal rules and/or external quality
+    run_internal = quality_mode != "exclusive"
+    run_external = (
+        external_quality_col is not None
+        and quality_mode != "none"
+        and resolved_quality_map is not None
+    )
+
     for tag in tags:
         mask = out[_tag_col] == tag
         tag_df = out.loc[mask].copy()
@@ -236,19 +367,41 @@ def check(
         valid_df_indexed = valid_df.set_index(time_col)
         tag_series = valid_df_indexed[value_col].astype(float)
 
-        # Resolve rules for this tag
-        if yaml_rules is not None:
-            from tsqc.config.yaml_parser import get_rules_for_tag
+        # --- Internal rules ---
+        if run_internal:
+            if yaml_rules is not None:
+                from tsqc.config.yaml_parser import get_rules_for_tag
 
-            tag_rules = get_rules_for_tag(yaml_rules, tag)
-            if not tag_rules:
+                tag_rules = get_rules_for_tag(yaml_rules, tag)
+                if not tag_rules:
+                    tag_rules = _build_default_rules(tag_series)
+            elif rules is not None:
+                tag_rules = list(rules)
+            else:
                 tag_rules = _build_default_rules(tag_series)
-        elif rules is not None:
-            tag_rules = list(rules)
-        else:
-            tag_rules = _build_default_rules(tag_series)
 
-        q, r = _apply_rules_to_tag(tag_series, tag_rules)
+            internal_q, internal_r = _apply_rules_to_tag(tag_series, tag_rules)
+        else:
+            internal_q = internal_r = None
+
+        # --- External quality ---
+        if run_external:
+            ext_vals = valid_df_indexed[external_quality_col]
+            external_q, external_r = _apply_external_quality_map(ext_vals, resolved_quality_map)  # type: ignore[arg-type]
+        else:
+            external_q = external_r = None
+
+        # --- Combine ---
+        if external_q is not None and internal_q is not None:
+            # combined mode
+            q, r = _merge_external_internal(internal_q, internal_r, external_q, external_r)  # type: ignore[arg-type]
+        elif external_q is not None:
+            # exclusive mode
+            q, r = external_q, external_r  # type: ignore[union-attr]
+        else:
+            # internal-only mode
+            q, r = internal_q, internal_r  # type: ignore[union-attr]
+
         q.index = valid_idx
         r.index = valid_idx
 
@@ -266,15 +419,33 @@ def check(
         quality_parts.append(q.rename(quality_col))
         reasons_parts.append(r.rename(reasons_col))
 
-    quality_all = pd.concat(quality_parts)
-    reasons_all = pd.concat(reasons_parts)
+    # --- Handle column conflict: use temp names for output if needed ---
+    _output_qc = quality_col
+    _output_rc = reasons_col
+    if external_quality_col is not None and quality_col == external_quality_col:
+        _output_qc = f"_{quality_col}_qc_temp"
+        _output_rc = f"_{reasons_col}_qc_temp"
 
-    out[quality_col] = quality_all
-    out[reasons_col] = reasons_all
+    out[_output_qc] = pd.concat(quality_parts)
+    out[_output_rc] = pd.concat(reasons_parts)
 
     # Drop internal tag column if we added it
     if _tag_col == "_tag_internal":
         out = out.drop(columns=["_tag_internal"])
+
+    # --- Auto-rename output quality columns if they conflict with input ---
+    if _output_qc != quality_col:
+        new_qc = f"qc_{quality_col}"
+        new_rc = f"qc_{reasons_col}"
+        _warnings.warn(
+            f"Input column {external_quality_col!r} conflicts with output column "
+            f"{quality_col!r}. Renaming output to {new_qc!r} / {new_rc!r}.",
+            UserWarning,
+            stacklevel=2,
+        )
+        out = out.rename(columns={_output_qc: new_qc, _output_rc: new_rc})
+        quality_col = new_qc
+        reasons_col = new_rc
 
     # Convert timestamps back to the display timezone so the user sees
     # their original local timestamps in result.df, plot(), etc.

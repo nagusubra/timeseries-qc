@@ -41,6 +41,21 @@ tag_rules:
 
 ## Sections
 
+### `quality_map` (optional)
+
+Maps raw external quality column values to tsqc levels (`good`, `sus`, `bad`). Used together with `external_quality_col` in `tsqc.check()`. Unmapped values are treated as `bad`.
+
+```yaml
+quality_map:
+  0: good
+  1: sus
+  2: bad
+  3: bad
+  4: bad
+```
+
+If both YAML `quality_map` and the `quality_map=` function parameter are provided, the YAML version takes precedence.
+
 ### `default_rules`
 
 Rules applied to **every** tag in the dataset. Each entry is a rule specification with a `check` type and optional parameters.
