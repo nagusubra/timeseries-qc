@@ -57,6 +57,9 @@ plugins:
   - minify:
       minify_html: true
 
+exclude_docs: |
+  404.md
+
 markdown_extensions:
   - admonition
   - pymdownx.details
