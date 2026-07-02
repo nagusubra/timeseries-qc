@@ -109,7 +109,77 @@ result.issue_summary()
 
 Lists contiguous segments of non-good quality with start/end timestamps, row counts, durations, and the rule names that triggered the issue.
 
-### Timestamp Health
+### Using an External Quality Column
+
+If your data already has a quality/status column from a SCADA historian (e.g. OSIsoft PI quality codes, OPC UA status), you can use it directly instead of or alongside the internal rules.
+
+### Exclusive Mode — External Quality Only
+
+```python
+result = tsqc.check(
+    df,
+    external_quality_col="status",       # column with 0,1,2,3,4 values
+    quality_mode="exclusive",
+    quality_map={0: "good", 1: "sus", 2: "bad", 3: "bad", 4: "bad"},
+    assume_tz="UTC",
+)
+```
+
+When a value is not present in `quality_map`, it is automatically treated as `bad` with reason `external_quality_value: <raw_value>`.
+
+### Combined Mode — External + Internal Rules
+
+Merges both sources with worst-wins logic:
+
+```python
+result = tsqc.check(
+    df,
+    external_quality_col="status",
+    quality_mode="combined",
+    quality_map={0: "good", 1: "sus", 2: "bad"},
+    rules=[NullRule(), RangeRule(min_val=0, max_val=100)],
+    assume_tz="UTC",
+)
+```
+
+- If external says `bad` and internal says `good` → final is `bad` with reason `external_quality_value: <raw_value>`
+- If external says `good` and internal says `bad` → final is `bad` with reason `null values` (internal reason preserved)
+- If both say `bad` → reasons are pipe-delimited: `null values|external_quality_value: <raw_value>`
+
+### None Mode — Internal Only
+
+Ignores the external column entirely. Does not require a `quality_map`.
+
+```python
+result = tsqc.check(df, external_quality_col="status", quality_mode="none", assume_tz="UTC")
+```
+
+This is useful when you want to keep the same code path but toggle off external quality handling.
+
+### Column Conflict Handling
+
+If your external quality column has the same name as the output column (e.g. both are `"quality"`), the output is automatically renamed to `qc_quality` / `qc_quality_reasons` and the original input column is preserved. A warning is issued.
+
+### YAML `quality_map`
+
+You can also define the quality map in your YAML rules file:
+
+```yaml
+quality_map:
+  0: good
+  1: sus
+  2: bad
+  3: bad
+  4: bad
+
+default_rules:
+  - check: null
+    level: bad
+```
+
+YAML `quality_map` takes precedence over the `quality_map=` function parameter when both are provided.
+
+## Timestamp Health
 
 ```python
 result.check_timestamps()

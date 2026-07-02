@@ -41,6 +41,63 @@ tag_rules:
       level: bad
 ```
 
+### External Quality Column (Historian Status)
+```python
+# Use an existing historian status column — exclusive mode (skip internal checks)
+result = tsqc.check(
+    df,
+    external_quality_col="status",       # column with 0,1,2,3,4 values
+    quality_mode="exclusive",            # or "combined" to merge with internal
+    rules="rules.yaml",                  # quality_map lives here or use quality_map=dict
+    assume_tz="UTC",
+)
+```
+
+Also accepts `quality_map` as a dict parameter:
+```python
+result = tsqc.check(
+    df, external_quality_col="status", quality_mode="combined",
+    quality_map={0: "good", 1: "sus", 2: "bad", 3: "bad", 4: "bad"},
+    rules=[NullRule(), RangeRule(min_val=0, max_val=100)],
+    assume_tz="UTC",
+)
+```
+
+### YAML with quality_map Example
+```yaml
+quality_map:
+  0: good
+  1: sus
+  2: bad
+  3: bad
+  4: bad
+
+default_rules:
+  - check: null
+    level: bad
+  - check: flatline
+    window: 1h
+    min_delta: 0.001
+    level: sus
+tag_rules:
+  "GENERATOR.*":
+    - check: range
+      min: 0
+      max: 200
+      level: bad
+```
+
+| Mode | Behavior |
+|------|----------|
+| `exclusive` | External quality **only**; no internal rules run |
+| `combined` | External + internal merged (worst-wins: bad > sus > good) |
+| `none` | Internal only; ignores external column (escape hatch) |
+
+- Unmapped quality values → `bad` with reason `"external_quality_value: <value>"`
+- Column conflict (input col == output col name) → auto-renamed to `qc_quality` / `qc_quality_reasons`; input col preserved
+- `quality_map` in YAML takes precedence over the `quality_map=` parameter
+- `quality_mode='none'` does NOT require a `quality_map`
+
 ### QCResult Methods
 | Method | Returns |
 |--------|---------|

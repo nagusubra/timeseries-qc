@@ -53,6 +53,7 @@ A simple to digest and understand timeseries data quality check. Catch the issue
 
 ## Features
 
+- **External quality column** — ingest a pre-existing historian/SCADA quality column and use it exclusively or merge it with internal rules (`exclusive`, `combined`, `none` modes)
 - **Four built-in rules** cover ≥80% of real-world bad data: `NullRule`, `FlatlineRule`, `DeltaRule`, `RangeRule`
 - **Timeline chart** (`result.plot()`) — Plotly Gantt-style, one row per tag, Green/Yellow/Red, hover tooltips
 - **YAML config** — non-coders set thresholds in a text file, no Python required
@@ -130,6 +131,36 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
+---
+
+## External Quality Column (Historian Status)
+
+If your data already has a quality/status column from a SCADA historian (e.g. OSIsoft PI's `IsGood` or custom status codes), you can use it directly:
+
+```python
+# Exclusive mode — use only the external quality column, skip internal rules
+result = tsqc.check(
+    df,
+    external_quality_col="status",       # column with 0,1,2,3,4 values
+    quality_mode="exclusive",            # or "combined" to merge with internal
+    quality_map={0: "good", 1: "sus", 2: "bad", 3: "bad", 4: "bad"},
+    assume_tz="UTC",
+)
+```
+
+| Mode | Behavior |
+|------|----------|
+| `exclusive` | External quality **only**; no internal rules run |
+| `combined` | External + internal merged (worst-wins: bad > sus > good) |
+| `none` | Internal only; ignores external column (escape hatch) |
+
+- Unmapped quality values become `bad` with reason `external_quality_value: <raw_value>`
+- Column conflict (input col matches output col name) → auto-renamed to `qc_quality` / `qc_quality_reasons`; input col preserved
+- `quality_map` in YAML takes precedence over the `quality_map=` parameter
+- `quality_mode="none"` does **not** require a `quality_map`
+
+---
+
 ## Output Schema
 
 `result.df` adds two columns to your DataFrame:
@@ -154,7 +185,7 @@ result.export_report("report.html")  # Full HTML with chart + all tables
 
 ---
 
-## Known Limitations (v0.3.2)
+## Known Limitations (v0.4.0)
 
 1. **Pandas only.** PySpark and Polars support are deferred.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.

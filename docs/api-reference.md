@@ -20,6 +20,9 @@ result = tsqc.check(
     quality_col: str = "quality",
     reasons_col: str = "quality_reasons",
     assume_tz: str | None = None,
+    external_quality_col: str | None = None,
+    quality_mode: str = "combined",
+    quality_map: dict | None = None,
 ) -> QCResult
 ```
 
@@ -35,10 +38,13 @@ result = tsqc.check(
 | `quality_col` | `"quality"` | Output column name for quality label |
 | `reasons_col` | `"quality_reasons"` | Output column name for triggered rule names |
 | `assume_tz` | `None` | IANA timezone for tz-naive input, e.g. `"UTC"` or `"America/Chicago"`. Optional if timestamps are already tz-aware — the existing timezone is used as-is. |
+| `external_quality_col` | `None` | Name of a column containing pre-existing quality codes from a historian / SCADA system (e.g. 0=good, 1=sus, 2=bad). `None` = feature disabled. Requires a `quality_map` (dict or YAML) to define the value-to-level mapping. |
+| `quality_mode` | `"combined"` | One of `"exclusive"`, `"combined"`, `"none"`. `"exclusive"` uses the external column only (skips internal rules). `"combined"` merges external + internal rules with worst-wins (bad > sus > good). `"none"` ignores the external column. |
+| `quality_map` | `None` | Dict mapping raw external quality values to tsqc levels, e.g. `{0: "good", 1: "sus", 2: "bad"}`. Alternative to defining the map in a YAML rules file. YAML takes precedence if both given. |
 
 ### Raises
 
-- `ValueError`: Missing columns, unparseable timestamps, tz-naive without `assume_tz`, invalid `assume_tz`, missing YAML file
+- `ValueError`: Missing columns, unparseable timestamps, tz-naive without `assume_tz`, invalid `assume_tz`, missing YAML file, missing `quality_map` when `external_quality_col` is given and `quality_mode != "none"`, invalid `quality_mode` or `quality_map` values.
 
 ## `QCResult`
 

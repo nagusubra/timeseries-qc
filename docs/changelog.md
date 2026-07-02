@@ -5,6 +5,13 @@ description: Version history and release notes for the timeseries-qc library.
 
 # Changelog
 
+## 0.4.0 — 2026-07-02
+
+### Features
+
+- **External Quality Column** (`external_quality_col`): Intake a pre-existing quality/status column from SCADA historians and either use it exclusively (`quality_mode="exclusive"`) or merge it with internal rules (`quality_mode="combined"`). Value-to-level mapping via YAML `quality_map` section or `quality_map=` dict parameter. Unmapped values become `bad`. Configure via `quality_mode="none"` to ignore the external column entirely. (`#PR`)
+- **Column Conflict Auto-Rename**: When the external quality column name matches the default output column name (e.g. both named `quality`), the output is automatically renamed to `qc_quality` / `qc_quality_reasons` and the input column is preserved. A warning is issued.
+
 ## 0.3.2 — 2026-06-26
 
 ### Bug Fixes & Housekeeping
