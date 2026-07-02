@@ -27,7 +27,7 @@ A simple to digest and understand timeseries data quality check. Catch the issue
 
 **Sample Output - Solar farm SCADA data:**
 
-![Solar farm SCADA data quality example](./docs/solar_farm_example.png)
+![Solar farm SCADA data quality example](./docs/assets/images/solar_farm_example.png)
 
 
 **Sample Input - Oil field SCADA data:**
@@ -48,7 +48,7 @@ A simple to digest and understand timeseries data quality check. Catch the issue
 
 **Sample Output - Oil field SCADA data:**
 
-![Oil  field SCADA data quality example](./docs/oil_field_example.png)
+![Oil field SCADA data quality example](./docs/assets/images/oil_field_example.png)
 
 
 ## Features
