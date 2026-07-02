@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import warnings as _warnings
 import zoneinfo
 from typing import TYPE_CHECKING
-
-import warnings as _warnings
 
 import numpy as np
 import pandas as pd
