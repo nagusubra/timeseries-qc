@@ -46,14 +46,34 @@
   }
   </script>
 
-  <!-- WebSite Schema -->
+  <!-- WebSite Schema + SearchAction (SEO) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "timeseries-qc",
-    "url": "https://nagusubra.github.io/timeseries-qc/"
+    "url": "https://nagusubra.github.io/timeseries-qc/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://nagusubra.github.io/timeseries-qc/?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
   }
   </script>
 
+{% endblock %}
+
+{% block content %}
+  {% if page.edit_url %}
+    <a href="{{ page.edit_url }}" title="Edit this page" class="md-content__button md-icon">
+      {% include ".icons/material/pencil.svg" %}
+    </a>
+  {% endif %}
+  <a href="https://github.com/nagusubra/timeseries-qc/issues/new" title="Report issue" class="md-content__button md-icon">
+    {% include ".icons/fontawesome/solid/bug.svg" %}
+  </a>
+  {{ super() }}
 {% endblock %}
