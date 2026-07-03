@@ -135,3 +135,4 @@ nav:
     - Roadmap: roadmap.md
     - Changelog: changelog.md
     - Contributing: contributing.md
+    - Report Issue: https://github.com/nagusubra/timeseries-qc/issues/new

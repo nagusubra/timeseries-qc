@@ -1,0 +1,449 @@
+# timeseries-qc — Full Documentation
+
+> Open-source Python library for quality control of SCADA, DCS, IoT, and historian time-series data. Tags every row as good, suspect, or bad with built-in rules, YAML configuration, and Plotly timeline charts. Compatible with pandas DataFrames. MIT licensed.
+
+---
+
+## Quickstart
+
+Run a complete quality check on your time series data in 5 lines.
+
+```python
+import tsqc
+import pandas as pd
+
+df = pd.read_csv("sensor_data.csv")
+result = tsqc.check(df, assume_tz="UTC")
+result.plot().show()
+print(result.summary())
+result.export_report("report.html")
+```
+
+### Output Schema
+
+`result.df` adds two columns:
+
+| Column | Values | Notes |
+|--------|--------|-------|
+| `quality` | `"good"`, `"sus"`, `"bad"` | Worst-level rule wins |
+| `quality_reasons` | e.g. `"flatline|range"` | Pipe-delimited triggered rule names |
+
+---
+
+## Installation
+
+```bash
+pip install timeseries-qc
+```
+
+**Requirements:** Python 3.9+, pandas >= 1.5, plotly >= 5.0, pyyaml >= 6.0
+
+**Development setup:**
+```bash
+git clone https://github.com/nagusubra/timeseries-qc.git
+cd timeseries-qc
+pip install -e ".[dev]"
+```
+
+---
+
+## User Guide
+
+### Loading Data
+
+Works with any pandas DataFrame containing `timestamp`, `tag_name` (optional), and `value` columns.
+
+**Multi-tag data:**
+```python
+import pandas as pd
+import tsqc
+
+df = pd.DataFrame({
+    "timestamp": ["2026-01-01 00:00", "2026-01-01 01:00", "2026-01-01 02:00"],
+    "tag_name": ["SENSOR.A", "SENSOR.A", "SENSOR.B"],
+    "value": [100.0, 100.0, 200.0],
+})
+result = tsqc.check(df, assume_tz="UTC")
+```
+
+**Single-tag data:** Omit `tag_name` column or pass `tag_col=None`.
+
+### Running Quality Checks
+
+- **Auto defaults:** `tsqc.check(df, assume_tz="UTC")` — uses 3-sigma delta thresholding
+- **YAML rules:** `tsqc.check(df, rules="tsqc_rules.yaml")`
+- **Programmatic rules:**
+  ```python
+  from tsqc import FlatlineRule, RangeRule
+  rules = [FlatlineRule(window="1h", min_delta=0.5, level="sus"),
+           RangeRule(min_val=0, max_val=100, level="bad")]
+  result = tsqc.check(df, rules=rules, assume_tz="UTC")
+  ```
+
+### Timezone Handling
+
+- **Tz-naive input:** Pass `assume_tz="America/Edmonton"` (or your source timezone)
+- **Tz-aware input:** Existing timezone detected automatically
+- All output (chart, `result.df`, summaries) displays in the input timezone
+- `result.display_tz` returns the IANA timezone string
+
+### External Quality Column (v0.4.0)
+
+Use a pre-existing quality column from SCADA historians:
+
+```python
+result = tsqc.check(
+    df,
+    external_quality_col="status",
+    quality_mode="exclusive",  # "exclusive", "combined", or "none"
+    quality_map={0: "good", 1: "sus", 2: "bad", 3: "bad", 4: "bad"},
+    assume_tz="UTC",
+)
+```
+
+- `exclusive`: External column only, no internal rules
+- `combined`: Merge external + internal with worst-wins (bad > sus > good)
+- `none`: Ignore external column (escape hatch)
+- Unmapped values become `bad` with reason `external_quality_value: <raw_value>`
+- Column name conflicts auto-rename output to `qc_quality`/`qc_quality_reasons`
+
+### Interpreting Results
+
+```python
+result.summary()           # DataFrame: pct_good/sus/bad per tag
+result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, duration, reasons)
+result.check_timestamps()  # DataFrame: gap/duplicate/non_monotonic issues
+result.export_report("report.html")  # Full HTML with chart + all tables
+```
+
+---
+
+## API Reference
+
+### `tsqc.check()`
+
+```python
+result = tsqc.check(
+    df: pd.DataFrame, *,
+    time_col: str = "timestamp",
+    tag_col: str | None = "tag_name",
+    value_col: str = "value",
+    rules: list[Rule] | str | None = None,
+    quality_col: str = "quality",
+    reasons_col: str = "quality_reasons",
+    assume_tz: str | None = None,
+    external_quality_col: str | None = None,
+    quality_mode: str = "combined",
+    quality_map: dict | None = None,
+) -> QCResult
+```
+
+### QCResult Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `.summary()` | DataFrame | Per-tag %good/%sus/%bad sorted by pct_bad desc |
+| `.plot(tags, start, end, title, height)` | Plotly Figure | Multi-tag horizontal quality timeline |
+| `.issue_summary()` | DataFrame | Contiguous bad/sus segments with reasons |
+| `.check_timestamps(expected_freq, freq_tolerance)` | DataFrame | Gap/duplicate/drift/DST detection |
+| `.export_report(path, title)` | None | Self-contained HTML report |
+
+### Rule Classes
+
+| Class | Parameters | Default Level |
+|-------|-----------|---------------|
+| `NullRule(level)` | — | `bad` |
+| `FlatlineRule(window, min_delta, min_duration, level)` | window (required), min_delta (default 0.0), min_duration (optional) | `sus` |
+| `DeltaRule(min_delta, max_delta, level)` | At least one of min_delta/max_delta required | `sus` |
+| `RangeRule(min_val, max_val, level)` | At least one bound required | `bad` |
+| `CustomRule(fn, name, level)` | Callable accepting and returning pd.Series | `sus` |
+
+---
+
+## Rule Engine
+
+### How Rules Work
+
+Each rule evaluates a pandas Series and returns a boolean Series. Rules are applied per tag in order. When multiple rules fire, the worst quality wins: **bad > sus > good**.
+
+### Built-in Rules Detail
+
+- **NullRule:** Flags NaN, None, pd.NA rows
+- **FlatlineRule:** Flags rows where rolling std <= min_delta within window. Optional min_duration suppresses flags for flat runs shorter than the given duration.
+- **DeltaRule:** Flags rows based on absolute change from previous reading. max_delta catches spikes, min_delta catches stuck sensors.
+- **RangeRule:** Flags rows outside [min_val, max_val]
+- **CustomRule:** Wraps any callable
+
+### Default Auto-Rules
+
+When no rules provided:
+```python
+NullRule(level="bad")
+FlatlineRule(window="1h", min_delta=0.0, level="sus")
+DeltaRule(max_delta=3 * std, level="sus")
+```
+
+---
+
+## YAML Configuration
+
+```yaml
+# tsqc_rules.yaml
+default_rules:
+  - check: null
+    level: bad
+  - check: flatline
+    window: 1h
+    min_delta: 0.001
+    level: sus
+  - check: delta
+    max_delta: 50.0
+    level: sus
+
+tag_rules:
+  "FOREBAY.LEVEL":
+    - check: range
+      min: 900
+      max: 1100
+      level: bad
+  "GENERATOR.*":
+    - check: range
+      min: 0
+      max: 200
+      level: bad
+    - check: flatline
+      window: 30min
+      min_delta: 0.5
+      level: sus
+
+quality_map:
+  0: good
+  1: sus
+  2: bad
+  3: bad
+  4: bad
+```
+
+### Supported Check Types
+
+| Check | Parameters | Default Level |
+|-------|-----------|---------------|
+| `null` | none | `bad` |
+| `flatline` | `window` (required), `min_delta`, `min_duration` | `sus` |
+| `delta` | `min_delta`, `max_delta` (at least one required) | `sus` |
+| `range` | `min`, `max` (at least one required) | `bad` |
+
+### Glob Pattern Matching
+
+Supports `*` and `?` wildcards via fnmatch: `GENERATOR.*`, `*.TEMP`, `SENSOR?`
+
+### How Loading Works
+
+1. All `default_rules` applied to every tag
+2. Matching `tag_rules` appended to defaults
+3. If no rules match a tag, auto-configured defaults used
+4. YAML `quality_map` takes precedence over `quality_map=` parameter
+
+---
+
+## Visualization
+
+### Basic Plot
+
+```python
+result.plot().show()
+```
+
+### Customizing
+
+```python
+result.plot(tags=["INVERTER.MW", "MET.IRRADIANCE"])
+result.plot(start="2026-01-01", end="2026-01-07")
+result.plot(title="Solar Farm Quality", height=600)
+```
+
+### Features
+
+- **Hover tooltips**: Tag name, quality, timestamps, duration, and **cause** (triggered rule names)
+- **Color coding**: Green = good, Yellow = suspect, Red = bad
+- **Range selector**: 1d, 1w, 1m, All buttons
+- **Range slider**: Bottom slider for zooming
+- **Legend**: Toggle good/suspect/bad visibility
+- **Timezone**: Automatically uses input timezone throughout
+
+### Export
+
+```python
+fig = result.plot()
+fig.write_html("chart.html")
+fig.write_image("chart.png")  # requires kaleido
+```
+
+---
+
+## Report Generation
+
+```python
+result.export_report("quality_report.html")
+result.export_report("report.html", title="Solar Farm QC Report - January 2026")
+```
+
+Self-contained HTML includes:
+1. Quality Timeline (interactive Plotly chart)
+2. Summary per Tag (good/suspect/bad percentages)
+3. Issue Summary (contiguous bad/sus segments with durations)
+4. Timestamp Health (gaps, duplicates, anomalies)
+
+No internet connection required to view.
+
+---
+
+## Timestamp Validation
+
+```python
+result = tsqc.check(df, assume_tz="UTC")
+issues = result.check_timestamps()
+issues = result.check_timestamps(expected_freq="1h", freq_tolerance=0.05)
+```
+
+### Detected Issues
+
+| Issue Type | Severity | Description |
+|------------|----------|-------------|
+| `gap` | error/warning | Time diff exceeds 2x expected frequency |
+| `duplicate` | error | Multiple rows with same timestamp |
+| `non_monotonic` | error | Timestamps out of order |
+| `freq_drift` | warning | Median interval deviates from expected |
+| `dst_ambiguous` | warning | Ambiguous during DST localization |
+
+Returns DataFrame with columns: `tag_name`, `issue_type`, `timestamp`, `description`, `severity`
+
+---
+
+## Architecture
+
+### Package Structure
+
+```
+tsqc/
+  __init__.py        # Public API: check(), QCResult, rule classes
+  checker.py         # Core check() function and rule application
+  result.py          # QCResult with summary, plot, issue_summary, export_report, check_timestamps
+  config/
+    yaml_parser.py   # Parse YAML rule files into Rule objects
+  rules/
+    base.py          # Abstract Rule base class
+    builtins.py      # NullRule, FlatlineRule, DeltaRule, RangeRule, CustomRule
+  time_health/
+    checker.py       # Timestamp validation (gaps, duplicates, drift, DST)
+  viz/
+    rle.py           # Run-length encoding for quality segments
+    timeline.py      # Plotly Gantt-style timeline figure builder
+```
+
+### Design Decisions
+
+- **Pandas-native**: Works with standard DataFrames
+- **Vectorized**: Numpy-based rule application for performance
+- **3-level classification**: good/sus/bad (not binary)
+- **Worst-level wins**: bad > sus > good
+- **Offline-first**: HTML reports embed all JS/CSS
+
+---
+
+## Changelog
+
+### 0.4.0 — 2026-07-02
+- **External Quality Column**: `external_quality_col` with exclusive/combined/none modes
+- **Column Conflict Auto-Rename**: Output auto-renamed to `qc_quality`/`qc_quality_reasons` on conflict
+
+### 0.3.2 — 2026-06-26
+- Fix DeltaRule NaN handling
+- Fix deprecated datetime.utcnow()
+- Fix version string
+
+### 0.3.0 — 2026-06-25
+- **FlatlineRule min_duration**: Suppress flags for short flat periods
+- **DeltaRule**: Replaced threshold with min_delta/max_delta (BREAKING)
+
+### 0.2.0 — 2026-03-15
+- Automatic timezone display
+- issue_summary() reasons column
+- Hover tooltip causes in timeline
+- Self-contained HTML export
+- Timestamp anomaly detection
+
+### 0.1.0 — 2026-01-15
+- Initial release: check(), QCResult, all rules, YAML, Plotly chart, timestamp health
+
+---
+
+## Roadmap
+
+**Short term:** ✅ Plotly chart, YAML config, HTML report, timestamp health, docs site
+
+**Medium term:** Statistical rules, custom rule templates, batch API, Parquet/Feather, CLI tool
+
+**Long term:** Spark/Dask backend, ML-based anomaly detection, real-time streaming, REST API, plugin system
+
+---
+
+## Contributing
+
+```bash
+git clone https://github.com/nagusubra/timeseries-qc.git
+cd timeseries-qc
+pip install -e ".[dev]"
+pytest tests/
+```
+
+- Add rules by extending `Rule` in `tsqc/rules/`
+- Follow PEP 8 with type hints and docstrings
+- Submit PRs from forked repository
+- Report issues at https://github.com/nagusubra/timeseries-qc/issues
+
+---
+
+## SCADA & Historian Integration
+
+Works with OSIsoft PI, OPC UA, Wonderware, and other SCADA historians. The `external_quality_col` parameter maps historian quality codes to good/sus/bad. OPC UA quality codes (0=good, 1=uncertain, 2=bad) map directly.
+
+---
+
+## Industrial Use Cases
+
+- **Solar farm**: Inverter power, irradiance, tracker angle — NaN bursts, flatlines, out-of-range
+- **Oil well pad**: Wellhead pressure, flow rate, temperature — spikes, stuck sensors, flatlines
+- **Hydro plant**: Forebay level, tailrace level, generator MW, inflow CFS — gaps, spikes, range violations
+
+Each use case has a synthetic data generator under `synthetic_data_generation/`.
+
+---
+
+## Comparison with Alternatives
+
+| | timeseries-qc | Pecos | SaQC | Great Expectations |
+|---|---|---|---|---|
+| Classification | Good/Sus/Bad | Pass/Fail | Flags | Pass/Fail |
+| Timeline chart | Yes | No | No | No |
+| YAML config | Yes | No | JSON | No |
+| Time-series native | Yes | Yes | Yes | No |
+| License | MIT | BSD-3 | LGPL | Apache-2.0 |
+
+---
+
+## Known Limitations (v0.4.0)
+
+1. Pandas only (PySpark and Polars planned)
+2. No YAML override of default rules (tag rules add to defaults)
+3. Visualization requires Plotly >= 5.0
+
+---
+
+## External Resources
+
+- GitHub: https://github.com/nagusubra/timeseries-qc
+- PyPI: https://pypi.org/project/timeseries-qc/
+- Issues: https://github.com/nagusubra/timeseries-qc/issues
+- Docs: https://nagusubra.github.io/timeseries-qc/
+- License: MIT

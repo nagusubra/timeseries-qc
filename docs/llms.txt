@@ -1,0 +1,59 @@
+# timeseries-qc
+
+> Open-source Python library for quality control of SCADA, DCS, IoT, and historian time-series data. Tags every row as good, suspect, or bad with built-in rules, YAML configuration, and Plotly timeline charts. Compatible with pandas DataFrames. MIT licensed.
+
+## Getting Started
+
+- [Quickstart](https://nagusubra.github.io/timeseries-qc/quickstart.md): Run your first quality check in 5 lines of Python.
+- [Installation](https://nagusubra.github.io/timeseries-qc/installation.md): System requirements, pip install, and dev setup.
+- [User Guide](https://nagusubra.github.io/timeseries-qc/user-guide.md): Complete walkthrough with loading data, running checks, interpreting results, and generating reports.
+
+## API Reference
+
+- [API Reference](https://nagusubra.github.io/timeseries-qc/api-reference.md): Full documentation for `tsqc.check()`, `QCResult` methods (summary, plot, issue_summary, check_timestamps, export_report), and all rule classes.
+- [Rule Engine](https://nagusubra.github.io/timeseries-qc/rules.md): How built-in rules work — NullRule, FlatlineRule (with min_duration), DeltaRule (min_delta/max_delta), RangeRule, CustomRule. Severity levels and rule ordering.
+- [YAML Configuration](https://nagusubra.github.io/timeseries-qc/yaml-configuration.md): Define rules in YAML files. Supports default_rules, tag_rules with glob patterns, and quality_map for external quality columns.
+
+## Visualization & Reports
+
+- [Visualization](https://nagusubra.github.io/timeseries-qc/visualization.md): Interactive multi-tag quality timeline charts with Plotly. Hover tooltips, range selector, timezone handling, filtering by tag/time.
+- [Report Generation](https://nagusubra.github.io/timeseries-qc/report-generation.md): Self-contained HTML reports with embedded Plotly chart, per-tag summary, issue breakdown, and timestamp health.
+
+## Timestamp Validation
+
+- [Timestamp Validation](https://nagusubra.github.io/timeseries-qc/timestamp-validation.md): Detect gaps, duplicates, non-monotonic timestamps, frequency drift, and DST ambiguities.
+
+## Architecture & Design
+
+- [Architecture](https://nagusubra.github.io/timeseries-qc/architecture.md): Package structure, data flow, design decisions (pandas-native, vectorized, 3-level classification, worst-level-wins).
+
+## Integration Guides
+
+- [SCADA & Historian Integration](https://nagusubra.github.io/timeseries-qc/scada-integration.md): Using timeseries-qc with OSIsoft PI, OPC UA, and other historian systems. External quality column support.
+- [Industrial Use Cases](https://nagusubra.github.io/timeseries-qc/industry-use-cases.md): Solar farm, oil well pad, and hydro power plant examples with synthetic data generators.
+
+## Reference
+
+- [FAQ](https://nagusubra.github.io/timeseries-qc/faq.md): Frequently asked questions about time series QC and library usage.
+- [Glossary](https://nagusubra.github.io/timeseries-qc/glossary.md): Terms and definitions (SCADA, DCS, historian, flatline, OPC UA, etc.).
+- [Comparison](https://nagusubra.github.io/timeseries-qc/comparison.md): Comparison with Pecos, SaQC, and Great Expectations.
+- [Troubleshooting](https://nagusubra.github.io/timeseries-qc/troubleshooting.md): Common issues and solutions.
+
+## Project
+
+- [Changelog](https://nagusubra.github.io/timeseries-qc/changelog.md): Version history (0.1.0 through 0.4.0).
+- [Roadmap](https://nagusubra.github.io/timeseries-qc/roadmap.md): Planned features — statistical rules, CLI tool, Parquet support, Spark/Dask backend.
+- [Contributing](https://nagusubra.github.io/timeseries-qc/contributing.md): Development setup, testing, adding new rules, and PR process.
+
+## AI Agent Skills
+
+- [AI Skill File](https://nagusubra.github.io/timeseries-qc/timeseries-qc.md): Structured instructions for AI coding agents (OpenCode, Cursor, Claude, Copilot).
+
+## External Resources
+
+- [GitHub Repository](https://github.com/nagusubra/timeseries-qc): Source code, issues, discussions.
+- [PyPI Package](https://pypi.org/project/timeseries-qc/): Python package index page.
+
+## Specifications
+
+- [OpenAPI spec](https://nagusubra.github.io/timeseries-qc/sitemap.xml): Sitemap for full site indexing.
