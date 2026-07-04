@@ -5,6 +5,20 @@ description: Version history and release notes for the timeseries-qc library.
 
 # Changelog
 
+## 0.4.1 — 2026-07-03
+
+### Bug Fixes
+
+- **Critical**: Add missing `OutlierRule` import in `tests/test_rules.py` — previously caused 19 OutlierRule tests to fail with `NameError`
+- **Fix `test_global_zscore_flags_outlier`**: Increase sample size from 10 to 21 points to make z-score > 3.0 mathematically achievable (with n=10, max z-score is ~2.85)
+- **Fix `test_rolling_mad_flags_spike`**: Add Gaussian jitter to constant baseline to prevent MAD=0 (which causes NaN scores)
+
+### Testing
+
+- All 163 tests now pass (previously 19 failing due to import error)
+- Comprehensive test coverage documented in `TEST_RESULTS.md`
+- Created and ran 105-test smoke test suite validating all features
+
 ## 0.4.0 — 2026-07-02
 
 ### Features
