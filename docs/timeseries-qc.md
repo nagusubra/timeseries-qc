@@ -5,7 +5,7 @@ description: Skill file for AI coding agents to use the timeseries-qc library fo
 
 # timeseries-qc — AI Agent Skill File
 
-Quick reference for AI coding agents to correctly use the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.3.2).
+Quick reference for AI coding agents to correctly use the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.4.1).
 
 **Library purpose:** Classify time series data rows as `good` / `sus` / `bad` using business rules, with a multi-tag horizontal timeline chart.
 
@@ -44,7 +44,9 @@ Use `time_col=`, `tag_col=`, `value_col=` parameters to customize column names.
 | `quality` | `"good"`, `"sus"`, `"bad"` | Worst-level rule wins across all rules |
 | `quality_reasons` | e.g. `"flatline\|range"` | Pipe-delimited names of triggered rules |
 
-## Rules (YAML — preferred approach)
+## YAML Configuration
+
+YAML configs are **batch-validated** — all errors are collected and reported at once with location paths and fuzzy-match hints for misspelled keys.
 
 ### YAML Syntax Reference
 
@@ -61,6 +63,11 @@ default_rules:
     min_delta: 0.5       # flags changes below this (stuck sensor)
     max_delta: 50.0      # flags changes above this (spike)
     level: sus           # at least one of min/max_delta required
+  - check: outlier
+    method: zscore       # zscore, mad, or iqr
+    threshold: 3.0       # sensitivity (default 3.0 for zscore/mad, 1.5 for iqr)
+    window: 24h          # omit for global mode, set for rolling mode
+    level: sus
 
 tag_rules:
   FOREBAY.LEVEL:
@@ -81,6 +88,21 @@ tag_rules:
 
 **Important:** Tag-specific rules ADD to default rules — they do NOT replace them. Both apply, worst level wins.
 
+### Quality Map (External Quality Column)
+
+```yaml
+quality_map:
+  0: good
+  1: sus
+  2: bad
+  3: bad
+  4: bad
+
+default_rules:
+  - check: null
+    level: bad
+```
+
 ### Usage
 
 ```python
@@ -95,10 +117,36 @@ result = tsqc.check(df, rules="tsqc_rules.yaml")
 | `FlatlineRule` | Stuck/frozen sensor (rolling std <= min_delta over window) | `sus` | `window` (e.g. `"1h"`) | `min_delta`, `min_duration`, `level` |
 | `DeltaRule` | Point-to-point spike or stuck | `sus` | `min_delta` or `max_delta` (>= 1) | `level` |
 | `RangeRule` | Out of bounds | `bad` | `min` or `max` (>= 1) | `level` |
+| `OutlierRule` | Statistical outliers (zscore / mad / iqr) | `sus` | `method` (`zscore`, `mad`, or `iqr`) | `threshold`, `window`, `min_periods`, `level` |
+
+**OutlierRule methods:**
+| Method | Description | Best For |
+|--------|-------------|----------|
+| `zscore` | `(value - mean) / std` | Normally distributed data |
+| `mad` | `0.6745 * (value - median) / MAD` | Data with extreme outliers in baseline |
+| `iqr` | Tukey's fences `[Q1 - k*IQR, Q3 + k*IQR]` | Skewed / non-normal distributions |
 
 When no rules are provided, auto-defaults use 3-sigma delta thresholding.
 
 When multiple rules fire for the same row: **bad > sus > good** (worst level wins).
+
+## External Quality Column (Historian Status)
+
+```python
+result = tsqc.check(
+    df,
+    external_quality_col="status",
+    quality_mode="exclusive",
+    quality_map={0: "good", 1: "sus", 2: "bad", 3: "bad", 4: "bad"},
+    assume_tz="UTC",
+)
+```
+
+| Mode | Behavior |
+|------|----------|
+| `exclusive` | External quality **only**; no internal rules run |
+| `combined` | External + internal merged (worst-wins: bad > sus > good) |
+| `none` | Internal only; ignores external column |
 
 ## Custom Rules (Python)
 
@@ -158,6 +206,7 @@ result.plot().show()
 3. **Wrong column names** — Defaults are `timestamp`, `tag_name`, `value`. Pass `time_col=`, `tag_col=`, `value_col=` to override.
 4. **Tag rules override misconception** — Tag rules add to defaults. Both fire, worst wins.
 5. **`assume_tz` ignored when data already has tz** — A warning is issued but no error; the existing timezone is used.
+6. **YAML typos** — Misspelled keys (`default_ruls`, `chek`, `windo`) are caught by batch validation with fuzzy-match suggestions.
 
 ## Links
 

@@ -160,6 +160,26 @@ from tsqc import RangeRule
 rule = RangeRule(min_val=0, max_val=100, level="bad")
 ```
 
+### `OutlierRule`
+
+Flag rows that are statistical outliers using one of three configurable methods. Supports both **global** (full-series) and **rolling** (time-windowed) computation.
+
+```python
+from tsqc import OutlierRule
+
+rule = OutlierRule(method="zscore")                        # global z-score
+rule = OutlierRule(method="mad", window="24h")             # rolling MAD
+rule = OutlierRule(method="iqr", threshold=2.0)            # Tukey's fences
+```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `method` | (required) | One of `"zscore"`, `"mad"`, `"iqr"` |
+| `threshold` | `3.0` (zscore/mad), `1.5` (iqr) | Sensitivity |
+| `window` | `None` | Pandas offset alias for rolling mode (e.g. `"24h"`); `None` = global |
+| `min_periods` | `10` | Minimum non-NaN observations to compute statistics |
+| `level` | `"sus"` | Quality level when flag fires |
+
 ### `CustomRule`
 
 Wrap an arbitrary user-supplied callable as a QC rule.

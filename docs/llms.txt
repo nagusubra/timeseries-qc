@@ -11,7 +11,7 @@
 ## API Reference
 
 - [API Reference](https://nagusubra.github.io/timeseries-qc/api-reference/): Full documentation for `tsqc.check()`, `QCResult` methods (summary, plot, issue_summary, check_timestamps, export_report), and all rule classes.
-- [Rule Engine](https://nagusubra.github.io/timeseries-qc/rules/): How built-in rules work — NullRule, FlatlineRule (with min_duration), DeltaRule (min_delta/max_delta), RangeRule, CustomRule. Severity levels and rule ordering.
+- [Rule Engine](https://nagusubra.github.io/timeseries-qc/rules/): How built-in rules work — NullRule, FlatlineRule (with min_duration), DeltaRule (min_delta/max_delta), RangeRule, OutlierRule (zscore/mad/iqr), CustomRule. Severity levels and rule ordering.
 - [YAML Configuration](https://nagusubra.github.io/timeseries-qc/yaml-configuration/): Define rules in YAML files. Supports default_rules, tag_rules with glob patterns, and quality_map for external quality columns.
 
 ## Visualization & Reports
@@ -41,8 +41,8 @@
 
 ## Project
 
-- [Changelog](https://nagusubra.github.io/timeseries-qc/changelog/): Version history (0.1.0 through 0.4.0).
-- [Roadmap](https://nagusubra.github.io/timeseries-qc/roadmap/): Planned features — statistical rules, CLI tool, Parquet support, Spark/Dask backend.
+- [Changelog](https://nagusubra.github.io/timeseries-qc/changelog/): Version history (0.1.0 through 0.4.1).
+- [Roadmap](https://nagusubra.github.io/timeseries-qc/roadmap/): Planned features — CLI tool, Parquet support, Spark/Dask backend.
 - [Contributing](https://nagusubra.github.io/timeseries-qc/contributing/): Development setup, testing, adding new rules, and PR process.
 
 ## AI Agent Skills

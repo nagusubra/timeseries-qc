@@ -185,7 +185,7 @@ result = tsqc.check(
 
 ---
 
-## Known Limitations (v0.4.0)
+## Known Limitations (v0.4.1)
 
 1. **Pandas only.** PySpark and Polars support are deferred.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.

@@ -1,6 +1,6 @@
 # timeseries-qc — AI Agent Instructions
 
-This project uses the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.3.2) for time series data quality control.
+This project uses the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.4.1) for time series data quality control.
 
 ## Quick Reference
 
@@ -19,8 +19,8 @@ result.plot().show()
 - `value` (float, required)
 
 ### Key Rules
-- **YAML-first:** Configure rules in `.yaml` files via `tsqc.check(df, rules="file.yaml")`
-- **4 built-in rules:** `null`, `flatline` (window+min_delta), `delta` (min/max_delta), `range` (min/max)
+- **YAML-first:** Configure rules in `.yaml` files via `tsqc.check(df, rules="file.yaml")` — config is batch-validated with helpful error messages listing all issues
+- **5 built-in rules:** `null`, `flatline` (window+min_delta), `delta` (min/max_delta), `range` (min/max), `outlier` (method+threshold+window)
 - **Levels:** `bad` > `sus` > `good` — worst wins across all rules
 - **Tag rules ADD** to defaults (do not replace)
 
@@ -33,6 +33,11 @@ default_rules:
     window: 1h
     min_delta: 0.001
     level: sus
+  - check: outlier
+    method: zscore
+    threshold: 3.0
+    window: 24h
+    level: sus
 tag_rules:
   "GENERATOR.*":
     - check: range
@@ -40,6 +45,25 @@ tag_rules:
       max: 200
       level: bad
 ```
+
+### External Quality Column (Historian Status)
+```python
+result = tsqc.check(
+    df,
+    external_quality_col="status",
+    quality_mode="exclusive",
+    rules="rules.yaml",
+    assume_tz="UTC",
+)
+```
+
+| Mode | Behavior |
+|------|----------|
+| `exclusive` | External quality **only**; no internal rules run |
+| `combined` | External + internal merged (worst-wins: bad > sus > good) |
+| `none` | Internal only; ignores external column (escape hatch) |
+
+- `quality_map` in YAML takes precedence over the `quality_map=` parameter
 
 ### QCResult Methods
 | Method | Returns |

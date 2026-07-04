@@ -1,0 +1,26 @@
+# Auto-detect text files and normalize to LF
+* text=auto
+
+# Python source
+*.py text diff=python
+
+# Jupyter notebooks
+*.ipynb text diff=json
+
+# YAML
+*.yaml text
+*.yml text
+
+# Markdown
+*.md text diff=markdown
+
+# CSV test fixtures (keep CRLF on Windows)
+*.csv text
+
+# HTML docs
+*.html text
+
+# Binary assets
+*.png binary
+*.svg binary
+*.ico binary

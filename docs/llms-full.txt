@@ -156,6 +156,7 @@ result = tsqc.check(
 | `FlatlineRule(window, min_delta, min_duration, level)` | window (required), min_delta (default 0.0), min_duration (optional) | `sus` |
 | `DeltaRule(min_delta, max_delta, level)` | At least one of min_delta/max_delta required | `sus` |
 | `RangeRule(min_val, max_val, level)` | At least one bound required | `bad` |
+| `OutlierRule(method, threshold, window, min_periods, level)` | method required (zscore/mad/iqr), threshold defaults 3.0/1.5, window for rolling mode | `sus` |
 | `CustomRule(fn, name, level)` | Callable accepting and returning pd.Series | `sus` |
 
 ---
@@ -172,6 +173,7 @@ Each rule evaluates a pandas Series and returns a boolean Series. Rules are appl
 - **FlatlineRule:** Flags rows where rolling std <= min_delta within window. Optional min_duration suppresses flags for flat runs shorter than the given duration.
 - **DeltaRule:** Flags rows based on absolute change from previous reading. max_delta catches spikes, min_delta catches stuck sensors.
 - **RangeRule:** Flags rows outside [min_val, max_val]
+- **OutlierRule:** Flags statistical outliers using zscore (mean/std), mad (median/MAD), or iqr (Tukey's fences). Supports global (full-series) and rolling (time-windowed) modes.
 - **CustomRule:** Wraps any callable
 
 ### Default Auto-Rules
@@ -232,6 +234,7 @@ quality_map:
 | `flatline` | `window` (required), `min_delta`, `min_duration` | `sus` |
 | `delta` | `min_delta`, `max_delta` (at least one required) | `sus` |
 | `range` | `min`, `max` (at least one required) | `bad` |
+| `outlier` | `method` (zscore/mad/iqr), `threshold`, `window`, `min_periods` | `sus` |
 
 ### Glob Pattern Matching
 
@@ -333,7 +336,7 @@ tsqc/
     yaml_parser.py   # Parse YAML rule files into Rule objects
   rules/
     base.py          # Abstract Rule base class
-    builtins.py      # NullRule, FlatlineRule, DeltaRule, RangeRule, CustomRule
+    builtins.py      # NullRule, FlatlineRule, DeltaRule, RangeRule, OutlierRule, CustomRule
   time_health/
     checker.py       # Timestamp validation (gaps, duplicates, drift, DST)
   viz/
@@ -352,6 +355,10 @@ tsqc/
 ---
 
 ## Changelog
+
+### 0.4.1 — 2026-07-03
+- **Bug Fixes**: Fixed OutlierRule import and test edge cases. Removed test result documentation.
+- **Tests**: All 163 tests pass.
 
 ### 0.4.0 — 2026-07-02
 - **External Quality Column**: `external_quality_col` with exclusive/combined/none modes
@@ -382,7 +389,7 @@ tsqc/
 
 **Short term:** ✅ Plotly chart, YAML config, HTML report, timestamp health, docs site
 
-**Medium term:** Statistical rules, custom rule templates, batch API, Parquet/Feather, CLI tool
+**Medium term:** ✅ Statistical rules (OutlierRule), custom rule templates, batch API, Parquet/Feather, CLI tool
 
 **Long term:** Spark/Dask backend, ML-based anomaly detection, real-time streaming, REST API, plugin system
 
@@ -432,7 +439,7 @@ Each use case has a synthetic data generator under `synthetic_data_generation/`.
 
 ---
 
-## Known Limitations (v0.4.0)
+## Known Limitations (v0.4.1)
 
 1. Pandas only (PySpark and Polars planned)
 2. No YAML override of default rules (tag rules add to defaults)
