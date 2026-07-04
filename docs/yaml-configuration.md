@@ -1,6 +1,6 @@
 ---
 title: YAML Configuration — timeseries-qc
-description: Configure timeseries-qc rules using YAML files. No Python required. Supports glob patterns for tag matching.
+description: Configure timeseries-qc rules using YAML files with batch config validation. No Python required. Supports outlier detection, glob patterns for tag matching, and quality maps for historian status columns.
 ---
 
 # YAML Configuration

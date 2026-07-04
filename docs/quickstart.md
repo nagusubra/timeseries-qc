@@ -1,6 +1,6 @@
 ---
 title: Quickstart — timeseries-qc in 5 Lines
-description: Run your first time series quality check in 5 lines of Python with timeseries-qc. Classify every row as good, suspect, or bad.
+description: Run your first time series quality check in 5 lines of Python with timeseries-qc. Classify every row as good, suspect, or bad using five built-in rules including statistical outlier detection.
 ---
 
 # Quickstart

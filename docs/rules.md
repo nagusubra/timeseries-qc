@@ -1,6 +1,6 @@
 ---
 title: Rule Engine — timeseries-qc
-description: How the timeseries-qc rule engine works — built-in rules, custom rules, rule ordering, and severity levels.
+description: How the timeseries-qc rule engine works — five built-in rules (NullRule, FlatlineRule, DeltaRule, RangeRule, OutlierRule with zscore/mad/iqr), custom rules, rule ordering, and severity levels.
 ---
 
 # Rule Engine

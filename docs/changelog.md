@@ -7,11 +7,35 @@ description: Version history and release notes for the timeseries-qc library.
 
 ## 0.4.1 — 2026-07-03
 
+### Features
+
+- **YAML Config Validation**: YAML rule files are now batch-validated before construction. All errors (unknown top-level keys, misspelled check names, missing required params, type mismatches) are collected and reported in a single `ValueError` with location paths. Unknown keys get fuzzy-match suggestions via `difflib.get_close_matches()`. (`#26`)
+- **OutlierRule**: New built-in statistical outlier detection rule with three configurable methods:
+  - `zscore`: Classic `(value - mean) / std` — best for normally distributed data
+  - `mad`: Robust `0.6745 * (value - median) / MAD` — handles extreme outliers in baseline
+  - `iqr`: Tukey's fences `[Q1 - k·IQR, Q3 + k·IQR]` — works with skewed distributions
+  - Supports both global (full-series) and rolling (time-windowed via pandas offset) modes
+  - NaN values excluded from statistics, never flagged
+  - `min_periods` guard (default 10) prevents flagging on insufficient data
+  - Configurable via YAML (`check: outlier`) or Python (`OutlierRule(method="zscore")`) (`#25`)
+
 ### Bug Fixes
 
 - **Critical**: Add missing `OutlierRule` import in `tests/test_rules.py` — previously caused 19 OutlierRule tests to fail with `NameError`
 - **Fix `test_global_zscore_flags_outlier`**: Increase sample size from 10 to 21 points to make z-score > 3.0 mathematically achievable (with n=10, max z-score is ~2.85)
 - **Fix `test_rolling_mad_flags_spike`**: Add Gaussian jitter to constant baseline to prevent MAD=0 (which causes NaN scores)
+
+### Infrastructure
+
+- Added `.gitattributes` with `* text=auto` for cross-platform line ending normalization
+- Tightened `.gitignore` (scoped broad `*.csv`/`*.html` patterns, added `env/`, `.venv/`, `.vs/`, `.tox/`, `.eggs/`, `.python-version`)
+
+### Documentation
+
+- Updated all AI agent skill files: `CLAUDE.md`, `CLINE.md`, `.cursor/rules/timeseries-qc.mdc`, `docs/timeseries-qc.md` (v0.3.2 → v0.4.1)
+- Added `OutlierRule` class docs to `docs/api-reference.md`
+- Updated `docs/llms.txt` and `docs/llms-full.txt` with OutlierRule references
+- Fixed stale version references in `README.md` and `docs/llms-full.txt`
 
 ### Testing
 

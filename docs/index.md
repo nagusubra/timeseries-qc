@@ -2,8 +2,9 @@
 title: timeseries-qc — Quality Control for SCADA, DCS & Historian Time Series Data
 description: >-
   Open-source Python library for time series data quality control. Tags every
-  row as good/suspect/bad with built-in rules, YAML configuration, and Plotly
-  timeline charts. Works with SCADA, DCS, IoT, and historian data.
+  row as good/suspect/bad with five built-in rules (null, flatline, delta,
+  range, outlier), YAML config with batch validation, and Plotly timeline
+  charts. Works with SCADA, DCS, IoT, and historian data.
 ---
 
 <div class="tsqc-hero" markdown="1">
