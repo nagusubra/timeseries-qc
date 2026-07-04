@@ -97,6 +97,38 @@ Flags rows where the value is outside `[min, max]`.
 - Parameters: `min` (lower bound, optional), `max` (upper bound, optional)
 - Configuration: `{check: range, min: 0, max: 100, level: bad}`
 
+### OutlierRule
+
+Flags rows that are statistical outliers using one of three configurable methods.
+Supports both **global** (full-series) and **rolling** (time-windowed) computation.
+
+!!! info "Which method should I use?"
+    - **`zscore`** — Classic approach. Best when your data is roughly normally distributed without extreme outliers in the baseline.
+    - **`mad`** — Robust variant using Median Absolute Deviation. Less sensitive to extreme values in the baseline statistics. Good for sensor data with occasional spikes.
+    - **`iqr`** — Distribution-free. Works well with skewed data. Tukey's fences (k=1.5) is a standard choice.
+
+- Default level: `sus`
+- Parameters:
+  - `method` (required) — One of `zscore`, `mad`, `iqr`
+  - `threshold` (optional, default `3.0` for zscore/mad, `1.5` for iqr) — Sensitivity
+  - `window` (optional) — pandas offset alias for rolling mode, e.g. `"24h"`, `"7d"`. Omit or set to `null` for global mode.
+  - `min_periods` (optional, default `10`) — Minimum non-NaN observations needed
+- Global mode (full-series):
+  ```yaml
+  - check: outlier
+    method: zscore
+    threshold: 3.0
+    level: sus
+  ```
+- Rolling mode (time-windowed):
+  ```yaml
+  - check: outlier
+    method: iqr
+    threshold: 2.0
+    window: 24h
+    level: bad
+  ```
+
 ## Rule Ordering
 
 Rules are applied in the order they are defined. For each row:

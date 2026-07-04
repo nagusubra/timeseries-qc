@@ -21,6 +21,11 @@ default_rules:
   - check: delta
     max_delta: 50.0
     level: sus
+  - check: outlier
+    method: zscore
+    threshold: 3.0
+    window: 24h
+    level: sus
 
 tag_rules:
   "FOREBAY.LEVEL":
@@ -37,6 +42,10 @@ tag_rules:
       window: 30min
       min_delta: 0.5
       level: sus
+    - check: outlier
+      method: iqr
+      threshold: 2.0
+      level: bad
 ```
 
 ## Sections
@@ -72,6 +81,7 @@ Rules applied to **specific** tags only, identified by tag name or glob pattern.
 | `flatline` | `window` (required), `min_delta`, `min_duration` | `sus` |
 | `delta` | `min_delta`, `max_delta` (at least one required) | `sus` |
 | `range` | `min`, `max` (at least one required) | `bad` |
+| `outlier` | `method` (`zscore`, `mad`, or `iqr`), `threshold`, `window`, `min_periods` | `sus` |
 
 ## Glob Pattern Matching
 

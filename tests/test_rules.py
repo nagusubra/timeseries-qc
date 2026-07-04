@@ -252,6 +252,143 @@ class TestRangeRule:
         assert RangeRule(min_val=0.0, max_val=100.0).level == "bad"
 
 
+# ─────────────────────────  OutlierRule  ───────────────────────────────────
+
+class TestOutlierRule:
+    def _series(self, values, freq="1min", tz="UTC"):
+        idx = pd.date_range("2026-01-01", periods=len(values), freq=freq, tz=tz)
+        return pd.Series(values, index=idx, dtype=float)
+
+    # ── Global Z-score ─────────────────────────────────────────────────
+
+    def test_global_zscore_flags_outlier(self):
+        s = self._series([1.0, 2.0, 1.5, 2.5, 2.0, 100.0, 1.8, 2.2, 1.7, 2.3])
+        rule = OutlierRule(method="zscore", threshold=3.0)
+        flagged = rule.check(s)
+        assert flagged.iloc[5] == True  # 100 is an outlier
+
+    def test_global_zscore_does_not_flag_normal(self):
+        s = self._series([1.0, 2.0, 1.5, 2.5, 2.0, 1.8, 2.2, 1.7, 2.3, 2.1])
+        rule = OutlierRule(method="zscore", threshold=3.0)
+        flagged = rule.check(s)
+        assert flagged.sum() == 0
+
+    def test_global_zscore_zero_variance_no_flag(self):
+        s = self._series([42.0] * 10)
+        rule = OutlierRule(method="zscore", threshold=3.0)
+        flagged = rule.check(s)
+        assert flagged.sum() == 0
+
+    # ── Global MAD ─────────────────────────────────────────────────────
+
+    def test_global_mad_flags_outlier(self):
+        s = self._series([1.0, 2.0, 1.5, 2.5, 2.0, 100.0, 1.8, 2.2, 1.7, 2.3])
+        rule = OutlierRule(method="mad", threshold=3.5)
+        flagged = rule.check(s)
+        assert flagged.iloc[5] == True
+
+    def test_global_mad_zero_mad_no_flag(self):
+        s = self._series([42.0] * 10)
+        rule = OutlierRule(method="mad", threshold=3.5)
+        flagged = rule.check(s)
+        assert flagged.sum() == 0
+
+    # ── Global IQR ─────────────────────────────────────────────────────
+
+    def test_global_iqr_flags_outlier(self):
+        s = self._series([1, 2, 3, 4, 5, 6, 7, 8, 9, 100])
+        rule = OutlierRule(method="iqr", threshold=1.5)
+        flagged = rule.check(s)
+        assert flagged.iloc[9] == True
+
+    def test_global_iqr_does_not_flag_normal(self):
+        s = self._series([10, 12, 14, 15, 16, 17, 18, 19, 20])
+        rule = OutlierRule(method="iqr", threshold=1.5)
+        flagged = rule.check(s)
+        assert flagged.sum() == 0
+
+    # ── Rolling Z-score ────────────────────────────────────────────────
+
+    def test_rolling_zscore_flags_spike(self):
+        # Stable baseline then a spike
+        values = [10.0] * 50 + [100.0] + [10.0] * 49
+        s = self._series(values, freq="1min")
+        rule = OutlierRule(method="zscore", threshold=3.0, window="30min")
+        flagged = rule.check(s)
+        assert flagged.iloc[50] == True
+
+    def test_rolling_zscore_does_not_flag_baseline(self):
+        values = [10.0] * 100
+        s = self._series(values, freq="1min")
+        rule = OutlierRule(method="zscore", threshold=3.0, window="30min")
+        flagged = rule.check(s)
+        assert flagged.sum() == 0
+
+    # ── Rolling MAD ────────────────────────────────────────────────────
+
+    def test_rolling_mad_flags_spike(self):
+        values = [10.0] * 50 + [100.0] + [10.0] * 49
+        s = self._series(values, freq="1min")
+        rule = OutlierRule(method="mad", threshold=3.5, window="30min")
+        flagged = rule.check(s)
+        assert flagged.iloc[50] == True
+
+    # ── Rolling IQR ────────────────────────────────────────────────────
+
+    def test_rolling_iqr_flags_spike(self):
+        values = [10.0] * 50 + [100.0] + [10.0] * 49
+        s = self._series(values, freq="1min")
+        rule = OutlierRule(method="iqr", threshold=1.5, window="30min")
+        flagged = rule.check(s)
+        assert flagged.iloc[50] == True
+
+    # ── NaN handling ───────────────────────────────────────────────────
+
+    def test_does_not_flag_nan_rows(self):
+        values = [1.0, 2.0, float("nan"), 100.0, 3.0]
+        s = self._series(values)
+        rule = OutlierRule(method="zscore", threshold=2.0)
+        flagged = rule.check(s)
+        assert flagged.iloc[2] == False  # NaN is NullRule's job
+
+    def test_skips_nan_in_statistics(self):
+        """NaN values are excluded from mean/std computation."""
+        values = [float("nan")] * 50 + [100.0] + [float("nan")] * 49
+        s = self._series(values)
+        rule = OutlierRule(method="zscore", threshold=3.0, min_periods=5)
+        flagged = rule.check(s)
+        assert flagged.sum() == 0  # not enough valid data
+
+    # ── Edge cases ─────────────────────────────────────────────────────
+
+    def test_fewer_than_min_periods_no_flag(self):
+        s = self._series([1.0, 2.0, 3.0])
+        rule = OutlierRule(method="zscore", threshold=3.0, min_periods=10)
+        flagged = rule.check(s)
+        assert flagged.sum() == 0
+
+    def test_default_level_is_sus(self):
+        assert OutlierRule().level == "sus"
+
+    def test_rule_name_includes_method(self):
+        assert OutlierRule(method="zscore").name == "outlier-zscore"
+        assert OutlierRule(method="mad").name == "outlier-mad"
+        assert OutlierRule(method="iqr").name == "outlier-iqr"
+
+    def test_invalid_method_raises(self):
+        with pytest.raises(ValueError, match="method must be one of"):
+            OutlierRule(method="invalid")
+
+    def test_default_threshold_depends_on_method(self):
+        assert OutlierRule(method="zscore").threshold == 3.0
+        assert OutlierRule(method="mad").threshold == 3.0
+        assert OutlierRule(method="iqr").threshold == 1.5
+
+    def test_custom_threshold_used(self):
+        rule = OutlierRule(method="zscore", threshold=2.0)
+        assert rule.threshold == 2.0
+
+
 # ───────────────────────────  CustomRule  ──────────────────────────────────
 
 class TestCustomRule:

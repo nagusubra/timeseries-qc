@@ -219,6 +219,133 @@ class RangeRule(Rule):
         )
 
 
+class OutlierRule(Rule):
+    """Flag rows that are statistical outliers using Z-score, IQR, or MAD methods.
+
+    Supports both global (full-series) and rolling (time-windowed) computation
+    modes. NaN values are excluded from statistics and never flagged (NullRule
+    handles them).
+
+    Default level: "sus"
+
+    Parameters:
+        method:
+            - "zscore": (value - mean) / std. Classic method; assumes normality.
+            - "mad": 0.6745 * (value - median) / MAD. Robust variant, less
+              sensitive to outliers in the baseline statistics.
+            - "iqr": value outside [Q1 - k*IQR, Q3 + k*IQR]. Distribution-free.
+        threshold: Sensitivity threshold.
+            - For "zscore" / "mad": |score| > threshold is flagged. Default 3.0.
+            - For "iqr": multiplier k. Default 1.5 (Tukey's fences).
+        window: pandas offset alias (e.g. "24h", "7d") or None.
+            If set, statistics are computed over a rolling window of this size.
+            Requires a monotonic DatetimeIndex. None = global mode.
+            Default None.
+        min_periods: Minimum non-NaN observations needed in the (rolling) window
+            to compute statistics. Below this, the row is not flagged. Default 10.
+        level: "sus" or "bad". Default "sus".
+    """
+
+    def __init__(
+        self,
+        method: str = "zscore",
+        threshold: float | None = None,
+        window: str | None = None,
+        min_periods: int = 10,
+        level: str = "sus",
+    ) -> None:
+        super().__init__(level=level)
+        if method not in ("zscore", "mad", "iqr"):
+            raise ValueError(
+                f"method must be one of 'zscore', 'mad', 'iqr', got {method!r}."
+            )
+        self.method = method
+
+        if threshold is None:
+            self.threshold = 3.0 if method in ("zscore", "mad") else 1.5
+        else:
+            self.threshold = threshold
+
+        self.window = window
+        self.min_periods = min_periods
+
+    @property
+    def name(self) -> str:
+        return f"outlier-{self.method}"
+
+    def check(self, series: pd.Series) -> pd.Series:
+        not_nan = series.notna()
+        valid = series[not_nan]
+
+        if len(valid) < self.min_periods:
+            return pd.Series(False, index=series.index)
+
+        if self.window is not None:
+            flagged_valid = self._check_rolling(valid)
+        else:
+            flagged_valid = self._check_global(valid)
+
+        result = pd.Series(False, index=series.index)
+        result.loc[flagged_valid.index] = flagged_valid
+        return result & not_nan
+
+    def _check_global(self, valid: pd.Series) -> pd.Series:
+        if self.method == "zscore":
+            mean, std = valid.mean(), valid.std()
+            if std == 0 or pd.isna(std):
+                return pd.Series(False, index=valid.index)
+            scores = (valid - mean) / std
+            return scores.abs() > self.threshold
+
+        elif self.method == "mad":
+            median = valid.median()
+            mad = (valid - median).abs().median()
+            if mad == 0:
+                return pd.Series(False, index=valid.index)
+            scores = 0.6745 * (valid - median) / mad
+            return scores.abs() > self.threshold
+
+        elif self.method == "iqr":
+            q1, q3 = valid.quantile(0.25), valid.quantile(0.75)
+            iqr = q3 - q1
+            lower = q1 - self.threshold * iqr
+            upper = q3 + self.threshold * iqr
+            return (valid < lower) | (valid > upper)
+
+    def _check_rolling(self, valid: pd.Series) -> pd.Series:
+        if self.method == "zscore":
+            mean = valid.rolling(self.window, min_periods=self.min_periods).mean()
+            std = valid.rolling(self.window, min_periods=self.min_periods).std()
+            scores = (valid - mean) / std.replace(0, float("nan"))
+            return scores.abs() > self.threshold
+
+        elif self.method == "mad":
+            median = valid.rolling(self.window, min_periods=self.min_periods).median()
+            abs_dev = (valid - median).abs()
+            mad = abs_dev.rolling(self.window, min_periods=self.min_periods).median()
+            scores = 0.6745 * (valid - median) / mad.replace(0, float("nan"))
+            return scores.abs() > self.threshold
+
+        elif self.method == "iqr":
+            q1 = valid.rolling(self.window, min_periods=self.min_periods).quantile(0.25)
+            q3 = valid.rolling(self.window, min_periods=self.min_periods).quantile(0.75)
+            iqr = q3 - q1
+            lower = q1 - self.threshold * iqr
+            upper = q3 + self.threshold * iqr
+            return (valid < lower) | (valid > upper)
+
+    def __repr__(self) -> str:
+        parts = [
+            f"method={self.method!r}",
+            f"threshold={self.threshold}",
+        ]
+        if self.window is not None:
+            parts.append(f"window={self.window!r}")
+        parts.append(f"min_periods={self.min_periods}")
+        parts.append(f"level={self.level!r}")
+        return f"OutlierRule({', '.join(parts)})"
+
+
 class CustomRule(Rule):
     """Wrap an arbitrary user-supplied callable as a QC rule.
 

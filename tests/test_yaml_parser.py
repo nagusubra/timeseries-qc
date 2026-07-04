@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from tsqc.config.yaml_parser import get_rules_for_tag, parse_yaml_rules
-from tsqc.rules.builtins import DeltaRule, FlatlineRule, NullRule, RangeRule
+from tsqc.rules.builtins import DeltaRule, FlatlineRule, NullRule, OutlierRule, RangeRule
 
 
 @pytest.fixture
@@ -84,6 +84,106 @@ class TestParseYamlRules:
         parsed = parse_yaml_rules(str(rules_yaml))
         assert parsed["default"][0].level == "bad"
         assert parsed["default"][1].level == "sus"
+
+
+# ─────────────────────────────  OutlierRule in YAML  ───────────────────────
+
+class TestOutlierRuleYaml:
+    def test_outlier_global_zscore_parsed(self, tmp_path):
+        p = tmp_path / "r.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: outlier\n"
+            "    method: zscore\n"
+            "    threshold: 3.0\n"
+            "    level: sus\n"
+        )
+        parsed = parse_yaml_rules(str(p))
+        rule = parsed["default"][0]
+        assert isinstance(rule, OutlierRule)
+        assert rule.method == "zscore"
+        assert rule.threshold == 3.0
+        assert rule.window is None
+
+    def test_outlier_rolling_iqr_parsed(self, tmp_path):
+        p = tmp_path / "r.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: outlier\n"
+            "    method: iqr\n"
+            "    threshold: 2.0\n"
+            "    window: 24h\n"
+            "    level: bad\n"
+        )
+        parsed = parse_yaml_rules(str(p))
+        rule = parsed["default"][0]
+        assert isinstance(rule, OutlierRule)
+        assert rule.method == "iqr"
+        assert rule.threshold == 2.0
+        assert rule.window == "24h"
+        assert rule.level == "bad"
+
+    def test_outlier_global_mad_parsed(self, tmp_path):
+        p = tmp_path / "r.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: outlier\n"
+            "    method: mad\n"
+            "    level: sus\n"
+        )
+        parsed = parse_yaml_rules(str(p))
+        rule = parsed["default"][0]
+        assert isinstance(rule, OutlierRule)
+        assert rule.method == "mad"
+        assert rule.threshold == 3.0  # default for mad
+        assert rule.window is None
+
+    def test_outlier_tag_specific(self, tmp_path):
+        p = tmp_path / "r.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: null\n    level: bad\n"
+            "tag_rules:\n"
+            '  "GENERATOR.*":\n'
+            "    - check: outlier\n"
+            "      method: zscore\n"
+            "      window: 24h\n"
+            "      level: bad\n"
+        )
+        parsed = parse_yaml_rules(str(p))
+        assert "default" in parsed
+        assert "tags" in parsed
+        assert 'GENERATOR.*' in parsed["tags"]
+        rule = parsed["tags"]["GENERATOR.*"][0]
+        assert isinstance(rule, OutlierRule)
+        assert rule.window == "24h"
+        assert rule.level == "bad"
+
+    def test_outlier_invalid_method_raises(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: outlier\n"
+            "    method: invalid\n"
+            "    level: sus\n"
+        )
+        with pytest.raises(ValueError, match="must be one of"):
+            parse_yaml_rules(str(p))
+
+    def test_outlier_with_min_periods(self, tmp_path):
+        p = tmp_path / "r.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: outlier\n"
+            "    method: zscore\n"
+            "    threshold: 3.0\n"
+            "    window: 1h\n"
+            "    min_periods: 5\n"
+            "    level: sus\n"
+        )
+        parsed = parse_yaml_rules(str(p))
+        rule = parsed["default"][0]
+        assert rule.min_periods == 5
 
 
 # ─────────────────────────────  Glob matching  ─────────────────────────────
@@ -202,6 +302,108 @@ class TestYamlErrors:
         )
         with pytest.raises(ValueError, match=r"default_rules\[1\]"):
             parse_yaml_rules(str(p))
+
+
+# ─────────────────────────────  Batch validation  ──────────────────────────
+
+class TestYamlValidation:
+    def test_unknown_top_level_key_raises(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text("default_rules:\n  - check: null\n    level: bad\nunknown_key: 1\n")
+        with pytest.raises(ValueError, match="unknown_key"):
+            parse_yaml_rules(str(p))
+
+    def test_fuzzy_hint_includes_suggestion(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text("default_ruls:\n  - check: null\n    level: bad\n")
+        with pytest.raises(ValueError, match="default_rules"):
+            parse_yaml_rules(str(p))
+
+    def test_default_rules_wrong_type_raises(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text("default_rules:\n  check: null\n  level: bad\n")
+        with pytest.raises(ValueError, match="must be a list"):
+            parse_yaml_rules(str(p))
+
+    def test_tag_rules_wrong_type_raises(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text(
+            "default_rules:\n  - check: null\n    level: bad\n"
+            "tag_rules:\n  - check: range\n"
+        )
+        with pytest.raises(ValueError, match="must be a mapping"):
+            parse_yaml_rules(str(p))
+
+    def test_tag_rule_list_wrong_type_raises(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text(
+            "default_rules:\n  - check: null\n    level: bad\n"
+            "tag_rules:\n  SENSOR_A:\n    check: range\n    min: 0\n    max: 100\n"
+        )
+        with pytest.raises(ValueError, match="must be a list"):
+            parse_yaml_rules(str(p))
+
+    def test_unknown_check_name_with_hint(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text("default_rules:\n  - check: rng\n    min: 0\n    max: 100\n    level: bad\n")
+        with pytest.raises(ValueError, match="rng"):
+            parse_yaml_rules(str(p))
+
+    def test_unknown_check_param_with_hint(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: null\n"
+            "    min_val: 0\n"  # should be `min` not `min_val`
+            "    level: bad\n"
+        )
+        with pytest.raises(ValueError, match="min_val"):
+            parse_yaml_rules(str(p))
+
+    def test_batch_multiple_errors_reported_together(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text(
+            "default_rules:\n"
+            "  - check: null\n    level: bad\n"
+            "  - check: flatline\n    level: sus\n"  # missing window
+            "  - check: delta\n    level: sus\n"      # missing min/max_delta
+            "tag_rules:\n"
+            "  SENSOR_A:\n"
+            "    - check: rng\n"  # unknown check
+            "      min: 0\n"
+            "      level: bad\n"
+        )
+        with pytest.raises(ValueError) as exc:
+            parse_yaml_rules(str(p))
+        msg = str(exc.value)
+        # Should contain all error messages
+        assert "default_rules[1]" in msg
+        assert "default_rules[2]" in msg
+        assert "tag_rules['SENSOR_A'][0]" in msg
+
+    def test_quality_map_wrong_type_raises(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text(
+            "default_rules:\n  - check: null\n    level: bad\n"
+            "quality_map: not_a_dict\n"
+        )
+        with pytest.raises(ValueError, match="must be a mapping"):
+            parse_yaml_rules(str(p))
+
+    def test_quality_map_invalid_value_raises(self, tmp_path):
+        p = tmp_path / "bad.yaml"
+        p.write_text(
+            "default_rules:\n  - check: null\n    level: bad\n"
+            "quality_map:\n  0: invalid_level\n"
+        )
+        with pytest.raises(ValueError, match="invalid_level"):
+            parse_yaml_rules(str(p))
+
+    def test_valid_yaml_passes_structure_check(self, rules_yaml):
+        """Existing valid YAML should still parse without error."""
+        parsed = parse_yaml_rules(str(rules_yaml))
+        assert "default" in parsed
+        assert "tags" in parsed
 
 
 # ─────────────────────────────  End-to-end  ────────────────────────────────
