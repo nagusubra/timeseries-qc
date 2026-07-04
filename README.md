@@ -54,7 +54,7 @@ A simple to digest and understand timeseries data quality check. Catch the issue
 ## Features
 
 - **External quality column** — ingest a pre-existing historian/SCADA quality column and use it exclusively or merge it with internal rules (`exclusive`, `combined`, `none` modes)
-- **Four built-in rules** cover ≥80% of real-world bad data: `NullRule`, `FlatlineRule`, `DeltaRule`, `RangeRule`
+- **Five built-in rules** cover ≥90% of real-world bad data: `NullRule`, `FlatlineRule`, `DeltaRule`, `RangeRule`, `OutlierRule`
 - **Timeline chart** (`result.plot()`) — Plotly Gantt-style, one row per tag, Green/Yellow/Red, hover tooltips
 - **YAML config** — non-coders set thresholds in a text file, no Python required
 - **Timestamp health** (`result.check_timestamps()`) — detects gaps, duplicates, non-monotonic, freq drift, DST ambiguity

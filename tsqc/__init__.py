@@ -9,7 +9,7 @@ Public API:
 
 from tsqc.checker import check
 from tsqc.result import QCResult
-from tsqc.rules.builtins import CustomRule, DeltaRule, FlatlineRule, NullRule, RangeRule
+from tsqc.rules.builtins import CustomRule, DeltaRule, FlatlineRule, NullRule, OutlierRule, RangeRule
 
 __version__ = "0.4.0"
 __all__ = [
@@ -19,5 +19,6 @@ __all__ = [
     "FlatlineRule",
     "DeltaRule",
     "RangeRule",
+    "OutlierRule",
     "CustomRule",
 ]
