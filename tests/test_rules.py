@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from tsqc.rules.builtins import CustomRule, DeltaRule, FlatlineRule, NullRule, RangeRule
+from tsqc.rules.builtins import CustomRule, DeltaRule, FlatlineRule, NullRule, OutlierRule, RangeRule
 
 
 def _make_series(values, freq="1min", tz="UTC"):
@@ -262,10 +262,13 @@ class TestOutlierRule:
     # ── Global Z-score ─────────────────────────────────────────────────
 
     def test_global_zscore_flags_outlier(self):
-        s = self._series([1.0, 2.0, 1.5, 2.5, 2.0, 100.0, 1.8, 2.2, 1.7, 2.3])
+        # 20 normal points + prominent outlier; n=21 ensures z-score can exceed 3
+        s = self._series([1.0, 2.0, 1.5, 2.5, 2.0, 1.8, 2.2, 1.7, 2.3, 2.1,
+                          1.2, 1.8, 2.4, 1.6, 2.0, 1.9, 2.1, 1.4, 2.3, 1.7,
+                          100.0])
         rule = OutlierRule(method="zscore", threshold=3.0)
         flagged = rule.check(s)
-        assert flagged.iloc[5] == True  # 100 is an outlier
+        assert flagged.iloc[20] == True  # 100 is an outlier
 
     def test_global_zscore_does_not_flag_normal(self):
         s = self._series([1.0, 2.0, 1.5, 2.5, 2.0, 1.8, 2.2, 1.7, 2.3, 2.1])
@@ -327,7 +330,10 @@ class TestOutlierRule:
     # ── Rolling MAD ────────────────────────────────────────────────────
 
     def test_rolling_mad_flags_spike(self):
-        values = [10.0] * 50 + [100.0] + [10.0] * 49
+        # Baseline with tiny jitter so MAD is non-zero
+        rng = np.random.default_rng(42)
+        baseline = 10.0 + rng.normal(0, 0.1, 50)
+        values = list(baseline) + [100.0] + list(10.0 + rng.normal(0, 0.1, 49))
         s = self._series(values, freq="1min")
         rule = OutlierRule(method="mad", threshold=3.5, window="30min")
         flagged = rule.check(s)
