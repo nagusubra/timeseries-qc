@@ -39,6 +39,16 @@ cd synthetic_data_generation
 python generate_solar_data.py
 ```
 
+## Branch Protection
+
+The `main` branch is protected:
+- All changes must go through a pull request
+- At least one approving review from @nagusubra is required
+- All CI checks must pass
+- Branches must be up to date before merging
+- Force pushes and branch deletions are blocked
+- Linear history is enforced (no merge commits)
+
 ## Submitting a PR
 
 1. Fork the repo and create a branch: `git checkout -b feat/my-feature`
