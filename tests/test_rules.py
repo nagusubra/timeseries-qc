@@ -114,6 +114,38 @@ class TestFlatlineRule:
         flagged = rule.check(s)
         assert flagged.iloc[4:10].any(), "None min_duration should not filter"
 
+    # ── get_reason() method ─────────────────────────────────────────────
+
+    def test_get_reason_includes_value(self):
+        s = _make_series([42.5678] * 10)
+        rule = FlatlineRule(window="5min", min_delta=0.0)
+        reason = rule.get_reason(s, 5)
+        assert reason == "flatline @ 42.5678"
+
+    def test_get_reason_with_4_decimal_places(self):
+        s = _make_series([45.2] * 10)
+        rule = FlatlineRule(window="5min", min_delta=0.0)
+        reason = rule.get_reason(s, 5)
+        assert reason == "flatline @ 45.2000"
+
+    def test_get_reason_handles_nan(self):
+        s = _make_series([float("nan")] * 10)
+        rule = FlatlineRule(window="5min", min_delta=0.0)
+        reason = rule.get_reason(s, 5)
+        assert reason == "flatline @ nan"
+
+    def test_get_reason_handles_inf(self):
+        s = _make_series([float("inf")] * 10)
+        rule = FlatlineRule(window="5min", min_delta=0.0)
+        reason = rule.get_reason(s, 5)
+        assert reason == "flatline @ inf"
+
+    def test_get_reason_handles_negative_inf(self):
+        s = _make_series([float("-inf")] * 10)
+        rule = FlatlineRule(window="5min", min_delta=0.0)
+        reason = rule.get_reason(s, 5)
+        assert reason == "flatline @ -inf"
+
 
 # ─────────────────────────────  DeltaRule  ─────────────────────────────────
 

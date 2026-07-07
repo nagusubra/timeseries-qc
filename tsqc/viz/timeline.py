@@ -77,10 +77,10 @@ def build_timeline_figure(
         + "Duration: " + segments["duration_str"]
     )
 
-    # Append "Cause: ..." for non-good segments that have reasons
+    # Append "Reason: ..." for non-good segments that have reasons
     if "reasons" in segments.columns:
         cause_mask = segments["reasons"].str.len() > 0
-        segments.loc[cause_mask, "hover"] += "<br>Cause: " + segments.loc[cause_mask, "reasons"]
+        segments.loc[cause_mask, "hover"] += "<br>Reason: " + segments.loc[cause_mask, "reasons"]
 
     fig = go.Figure()
 

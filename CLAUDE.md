@@ -1,6 +1,6 @@
 # timeseries-qc — AI Agent Instructions
 
-This project uses the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.4.1) for time series data quality control.
+This project uses the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.4.2) for time series data quality control.
 
 ## Quick Reference
 
@@ -98,7 +98,7 @@ tag_rules:
 | `combined` | External + internal merged (worst-wins: bad > sus > good) |
 | `none` | Internal only; ignores external column (escape hatch) |
 
-- Unmapped quality values → `bad` with reason `"external_quality_value: <value>"`
+- Unmapped quality values → `bad` with reason `"source_data_quality: <value>"`
 - Column conflict (input col == output col name) → auto-renamed to `qc_quality` / `qc_quality_reasons`; input col preserved
 - `quality_map` in YAML takes precedence over the `quality_map=` parameter
 - `quality_mode='none'` does NOT require a `quality_map`

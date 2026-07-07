@@ -125,9 +125,10 @@ def _apply_rules_to_tag(
         if len(flagged_positions) == 0:
             continue
 
-        # Append rule name to reasons for each flagged row
+        # Append rule reason to reasons for each flagged row
         for pos in flagged_positions:
-            reasons[pos] = f"{reasons[pos]}|{rule.name}" if reasons[pos] else rule.name
+            reason = rule.get_reason(tag_series, pos)
+            reasons[pos] = f"{reasons[pos]}|{reason}" if reasons[pos] else reason
 
         # Update quality level (bad > sus > good)
         if rule.level == "bad":
@@ -160,7 +161,7 @@ def _apply_external_quality_map(
 
     Returns:
         quality: str Series ('good'/'sus'/'bad')
-        reasons: str Series with "external_quality: <raw_value>" for non-good rows
+        reasons: str Series with "source_data_quality: <raw_value>" for non-good rows
     """
     mapped = ext_raw.map(quality_map).fillna("bad")
 
@@ -169,7 +170,7 @@ def _apply_external_quality_map(
     reasons_list: list[str] = []
     for i, level in enumerate(levels):
         if level != "good":
-            reasons_list.append(f"external_quality_value: {raw_vals[i]}")
+            reasons_list.append(f"source_data_quality: {raw_vals[i]}")
         else:
             reasons_list.append("")
 

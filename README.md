@@ -154,7 +154,7 @@ result = tsqc.check(
 | `combined` | External + internal merged (worst-wins: bad > sus > good) |
 | `none` | Internal only; ignores external column (escape hatch) |
 
-- Unmapped quality values become `bad` with reason `external_quality_value: <raw_value>`
+- Unmapped quality values become `bad` with reason `source_data_quality: <raw_value>`
 - Column conflict (input col matches output col name) → auto-renamed to `qc_quality` / `qc_quality_reasons`; input col preserved
 - `quality_map` in YAML takes precedence over the `quality_map=` parameter
 - `quality_mode="none"` does **not** require a `quality_map`
@@ -168,7 +168,7 @@ result = tsqc.check(
 | Column | Values | Notes |
 |--------|--------|-------|
 | `quality` | `"good"`, `"sus"`, `"bad"` | Worst-level rule wins |
-| `quality_reasons` | e.g. `"flatline\|range"` | Pipe-delimited triggered rule names |
+| `quality_reasons` | e.g. `"flatline @ 42.5000\|range"` | Pipe-delimited triggered rule names (may include context) |
 
 ---
 
@@ -185,7 +185,7 @@ result = tsqc.check(
 
 ---
 
-## Known Limitations (v0.4.1)
+## Known Limitations (v0.4.2)
 
 1. **Pandas only.** PySpark and Polars support are deferred.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.

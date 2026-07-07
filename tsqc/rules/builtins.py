@@ -113,6 +113,22 @@ class FlatlineRule(Rule):
         parts.append(f"level={self.level!r}")
         return f"FlatlineRule({', '.join(parts)})"
 
+    def get_reason(self, series: pd.Series, idx: int) -> str:
+        """Return reason string with the flatline value included.
+
+        Format: "flatline @ <value>" with 4 decimal places.
+        Handles special values: nan, inf, -inf.
+        """
+        value = series.iloc[idx]
+        if pd.isna(value):
+            return "flatline @ nan"
+        elif value == float("inf"):
+            return "flatline @ inf"
+        elif value == float("-inf"):
+            return "flatline @ -inf"
+        else:
+            return f"flatline @ {value:.4f}"
+
 
 class DeltaRule(Rule):
     """Flag rows based on the absolute change from the previous reading.

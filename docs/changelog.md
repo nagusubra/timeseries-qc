@@ -5,6 +5,25 @@ description: Version history and release notes for the timeseries-qc library.
 
 # Changelog
 
+## 0.4.2 — 2026-07-07
+
+### Features
+
+- **Flatline Value in Reasons**: The `FlatlineRule` now includes the actual stuck value in the reason string, formatted as `flatline @ 42.5000` instead of just `flatline`. This provides immediate visibility into the severity of the flatline condition without requiring cross-reference to raw data. Special values (NaN, inf, -inf) are handled gracefully. Implemented via new `get_reason()` method in `Rule` base class, designed to be extensible for future rules. (`#46`)
+- **Renamed External Quality Reason Prefix**: Changed the reason string prefix from `external_quality_value:` to `source_data_quality:` for clearer user-facing semantics. The parameter names (`external_quality_col`, `quality_mode`) remain unchanged. (`#46`)
+- **Hover Tooltip Label Update**: Timeline chart hover tooltips now show `Reason:` instead of `Cause:` for consistency with the `quality_reasons` column naming convention. (`#46`)
+
+### API Changes (Non-Breaking)
+
+- **New Method**: `Rule.get_reason(series, idx)` — Override this method in custom rules to include contextual information (e.g., actual values) in reason strings. Default implementation returns `self.name` for backward compatibility.
+- **FlatlineRule**: Now overrides `get_reason()` to append the flatline value with 4 decimal places.
+
+### Testing
+
+- Added 6 new tests for flatline value formatting (normal values, 4 decimal precision, NaN, inf, -inf)
+- Updated 1 test for hover tooltip label change (`Cause:` → `Reason:`)
+- All 169 tests pass
+
 ## 0.4.1 — 2026-07-03
 
 ### Features

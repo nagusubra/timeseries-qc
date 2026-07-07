@@ -171,13 +171,13 @@ class TestBuildTimelineFigure:
         for trace in fig.data:
             ht = trace.hovertext
             if ht is not None:
-                if isinstance(ht, str) and "Cause:" in ht:
+                if isinstance(ht, str) and "Reason:" in ht:
                     has_cause = True
                     break
-                if isinstance(ht, (list, tuple)) and any("Cause:" in str(h) for h in ht):
+                if isinstance(ht, (list, tuple)) and any("Reason:" in str(h) for h in ht):
                     has_cause = True
                     break
-        assert has_cause, "Expected at least one trace with 'Cause:' in hovertext"
+        assert has_cause, "Expected at least one trace with 'Reason:' in hovertext"
 
     def test_plot_uses_display_timezone_for_non_utc(self):
         """Plot should render bars at the correct universal instant for local timestamps."""
