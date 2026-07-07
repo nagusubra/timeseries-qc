@@ -46,16 +46,21 @@ theme:
         name: Switch to light mode
 
 plugins:
-  - search
-  - social:
-      cards_layout_options:
-        background_color: "#2563eb"
+  - search:
+      lang: en
+      separator: '[\s\-\.]+'
+  # - social:
+  #     cards_layout_options:
+  #       background_color: "#2563eb"
   - tags
   - git-revision-date-localized:
       enable_creation_date: true
       enable_git_follow: false
   - minify:
       minify_html: true
+  - redirects:
+      redirect_maps:
+        'comparison.md': 'why-timeseries-qc.md'
 
 exclude_docs: |
   404.md
@@ -109,6 +114,7 @@ nav:
     - Installation: installation.md
     - Quickstart: quickstart.md
     - User Guide: user-guide.md
+    - Examples: examples.md
   - Documentation:
     - Overview: documentation/index.md
     - API Reference: api-reference.md
@@ -124,7 +130,7 @@ nav:
     - SCADA & Historian Integration: scada-integration.md
   - Reference:
     - Overview: reference/index.md
-    - Comparison: comparison.md
+    - Why timeseries-qc?: why-timeseries-qc.md
     - FAQ: faq.md
     - Glossary: glossary.md
     - Troubleshooting: troubleshooting.md
@@ -132,6 +138,7 @@ nav:
     - Skill File: timeseries-qc.md
   - Project:
     - Overview: project/index.md
+    - Community: community.md
     - Roadmap: roadmap.md
     - Changelog: changelog.md
     - Contributing: contributing.md

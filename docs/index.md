@@ -5,6 +5,9 @@ description: >-
   row as good/suspect/bad with five built-in rules (null, flatline, delta,
   range, outlier), YAML config with batch validation, and Plotly timeline
   charts. Works with SCADA, DCS, IoT, and historian data.
+og_title: "timeseries-qc: SCADA & Historian Data Quality Control"
+og_description: "Tag every row as good/suspect/bad with 5 built-in rules, YAML config, and Plotly timeline charts. The only library built specifically for time series QC."
+og_image: "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png"
 ---
 
 <div class="tsqc-hero" markdown="1">
@@ -57,27 +60,27 @@ That's the entire API. `check()` returns a `QCResult` with all downstream method
 <div class="tsqc-grid-item" markdown="1">
 **Built-in Rules**
 
-Null, Flatline, Delta, and Range rules cover the majority of real-world sensor faults. Custom rules accept any callable.
+Null, Flatline, Delta, Range, and Outlier rules cover the majority of real-world sensor faults. Custom rules accept any callable. [Learn more about rules →](rules.md)
 </div>
 <div class="tsqc-grid-item" markdown="1">
 **Timeline Chart**
 
-Plotly horizontal Gantt chart with one row per tag, color-coded by quality, interactive hover, and range selector.
+Plotly horizontal Gantt chart with one row per tag, color-coded by quality, interactive hover, and range selector. [See visualization guide →](visualization.md)
 </div>
 <div class="tsqc-grid-item" markdown="1">
 **External Quality Column**
 
-Use a pre-existing historian quality column exclusively or merged with internal rules. Supports exclusive/combined/none modes.
+Use a pre-existing historian quality column exclusively or merged with internal rules. Supports exclusive/combined/none modes. [SCADA integration guide →](scada-integration.md)
 </div>
 <div class="tsqc-grid-item" markdown="1">
 **Timestamp Health**
 
-Detects gaps, duplicates, non-monotonic timestamps, frequency drift, and DST ambiguities.
+Detects gaps, duplicates, non-monotonic timestamps, frequency drift, and DST ambiguities. [Timestamp validation docs →](timestamp-validation.md)
 </div>
 <div class="tsqc-grid-item" markdown="1">
 **YAML Configuration**
 
-Write rules in a plain text file. No Python required. Glob patterns supported for tag matching.
+Write rules in a plain text file. No Python required. Glob patterns supported for tag matching. [View YAML guide →](yaml-configuration.md)
 </div>
 <div class="tsqc-grid-item" markdown="1">
 **Offline HTML Report**
@@ -232,19 +235,39 @@ See the [User Guide](user-guide.md) for full details.
 
 <div class="tsqc-grid" markdown="1">
 <div class="tsqc-grid-item" markdown="1">
-**[Installation Guide](installation.md)**
-
-System requirements, pip install, and dev setup.
-</div>
-<div class="tsqc-grid-item" markdown="1">
-**[Quickstart](quickstart.md)**
+**[Quickstart Tutorial](quickstart.md)**
 
 Run your first quality check in 5 lines.
+</div>
+<div class="tsqc-grid-item" markdown="1">
+**[Examples](examples.md)**
+
+Real-world code for solar, oil & gas, manufacturing, and more.
+</div>
+<div class="tsqc-grid-item" markdown="1">
+**[User Guide](user-guide.md)**
+
+Complete walkthrough of all features and capabilities.
+</div>
+<div class="tsqc-grid-item" markdown="1">
+**[YAML Configuration](yaml-configuration.md)**
+
+Configure rules without writing Python code.
 </div>
 <div class="tsqc-grid-item" markdown="1">
 **[API Reference](api-reference.md)**
 
 Full documentation for every function and method.
+</div>
+<div class="tsqc-grid-item" markdown="1">
+**[Why timeseries-qc?](why-timeseries-qc.md)**
+
+See how we compare to alternatives like Pecos and SaQC.
+</div>
+<div class="tsqc-grid-item" markdown="1">
+**[Community](community.md)**
+
+Get help, share projects, and contribute.
 </div>
 <div class="tsqc-grid-item" markdown="1">
 **[GitHub](https://github.com/nagusubra/timeseries-qc)**

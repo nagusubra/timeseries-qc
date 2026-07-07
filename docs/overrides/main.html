@@ -8,6 +8,27 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="apple-touch-icon" href="assets/images/favicon.svg">
 
+  {# Open Graph & Twitter Card meta tags for key pages #}
+  {% if page and page.meta %}
+    {% if page.meta.og_image %}
+      <meta property="og:image" content="{{ page.meta.og_image }}">
+      <meta name="twitter:image" content="{{ page.meta.og_image }}">
+    {% endif %}
+    {% if page.meta.og_title %}
+      <meta property="og:title" content="{{ page.meta.og_title }}">
+      <meta name="twitter:title" content="{{ page.meta.og_title }}">
+    {% endif %}
+    {% if page.meta.og_description %}
+      <meta property="og:description" content="{{ page.meta.og_description }}">
+      <meta name="twitter:description" content="{{ page.meta.og_description }}">
+    {% endif %}
+  {% endif %}
+  
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ page.canonical_url }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@timeseries_qc">
+
   <!-- Organization Schema -->
   <script type="application/ld+json">
   {
@@ -15,25 +36,39 @@
     "@type": "Organization",
     "name": "timeseries-qc",
     "url": "https://nagusubra.github.io/timeseries-qc/",
-    "logo": "https://nagusubra.github.io/timeseries-qc/assets/images/favicon.svg",
+    "logo": "https://nagusubra.github.io/timeseries-qc/assets/images/logo.png",
     "sameAs": [
       "https://github.com/nagusubra/timeseries-qc",
       "https://pypi.org/project/timeseries-qc/"
-    ]
+    ],
+    "description": "Open-source Python library for time series data quality control"
   }
   </script>
 
-  <!-- SoftwareApplication Schema -->
+  {# Homepage - Enhanced SoftwareApplication Schema #}
+  {% if page.title and "timeseries-qc — Quality Control" in page.title %}
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "timeseries-qc",
+    "alternateName": "tsqc",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Linux, macOS, Windows",
-    "description": "Quality-control layer for SCADA, DCS, IoT, and historian time-series data. Tags every row as good, suspect, or bad with built-in rules, YAML config, and Plotly timeline charts.",
+    "programmingLanguage": {
+      "@type": "ComputerLanguage",
+      "name": "Python",
+      "version": "3.9+"
+    },
+    "description": "Open-source Python library for time series data quality control. Tags every row as good, suspect, or bad with five built-in rules (null, flatline, delta, range, outlier), YAML configuration, and Plotly timeline charts. Works with SCADA, DCS, IoT, and historian data.",
     "url": "https://nagusubra.github.io/timeseries-qc/",
-    "sameAs": "https://github.com/nagusubra/timeseries-qc",
+    "downloadUrl": "https://pypi.org/project/timeseries-qc/",
+    "installUrl": "https://pypi.org/project/timeseries-qc/#files",
+    "codeRepository": "https://github.com/nagusubra/timeseries-qc",
+    "softwareVersion": "0.4.2",
+    "datePublished": "2026-01-15",
+    "dateModified": "2026-07-07",
+    "license": "https://opensource.org/licenses/MIT",
     "author": {
       "@type": "Organization",
       "name": "timeseries-qc contributors"
@@ -42,16 +77,207 @@
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
-    }
+    },
+    "keywords": "timeseries, data quality, SCADA, historian, IoT, data validation, sensor data, industrial IoT, time series analysis, pandas, plotly, DCS, OPC UA, OSIsoft PI, outlier detection, data cleansing, energy sector, manufacturing",
+    "softwareRequirements": "Python 3.9+, pandas>=1.5, plotly>=5.0, pyyaml>=6.0",
+    "applicationSubCategory": "Data Quality Control",
+    "screenshot": "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png",
+    "featureList": [
+      "5 built-in quality rules (null, flatline, delta, range, outlier)",
+      "Multi-tag horizontal quality timeline visualization",
+      "YAML configuration with batch validation",
+      "External historian quality column support",
+      "Timestamp anomaly detection",
+      "Self-contained HTML report export",
+      "Statistical outlier detection (Z-score, MAD, IQR)",
+      "Good/Suspect/Bad three-level classification"
+    ]
   }
   </script>
+  {% endif %}
+
+  {# FAQ Page - FAQPage Schema #}
+  {% if "faq" in page.url %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is timeseries-qc?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "timeseries-qc is an open-source Python library that adds good/suspect/bad quality labels to every row of a pandas DataFrame containing time series data. It includes five built-in rules (null, flatline, delta, range, outlier), YAML configuration, and Plotly timeline visualization."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What data sources does timeseries-qc support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "timeseries-qc works with any pandas DataFrame containing timestamp, tag_name, and value columns. It's commonly used with SCADA systems, DCS platforms, IoT devices, and historian databases like OSIsoft PI, Wonderware, and Ignition."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I install timeseries-qc?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Install via pip: pip install timeseries-qc. Requires Python 3.9+ and dependencies: pandas>=1.5, plotly>=5.0, pyyaml>=6.0."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use timeseries-qc with historian quality columns?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Version 0.4.0+ supports external quality columns with three modes: exclusive (use historian quality only), combined (merge historian + internal rules), or none (ignore historian column)."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does timeseries-qc compare to Pecos or Great Expectations?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "timeseries-qc is the only library that combines good/suspect/bad three-level classification, multi-tag horizontal timeline visualization, YAML-driven configuration, and statistical outlier detection in a single package. Pecos offers binary pass/fail and is in maintenance mode. Great Expectations is not timeseries-native."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What industries use timeseries-qc?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "timeseries-qc is used in solar energy, wind energy, battery storage, oil & gas, manufacturing, utilities, and environmental monitoring. Any industry with SCADA, DCS, or IoT sensor data can benefit."
+        }
+      }
+    ]
+  }
+  </script>
+  {% endif %}
+
+  {# Quickstart Page - HowTo Schema #}
+  {% if "quickstart" in page.url %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to run a time series quality check with timeseries-qc",
+    "description": "Run your first time series quality check in 5 lines of Python code using the timeseries-qc library",
+    "image": "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png",
+    "totalTime": "PT2M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "USD",
+      "value": "0"
+    },
+    "tool": [
+      {
+        "@type": "HowToTool",
+        "name": "Python 3.9 or higher"
+      },
+      {
+        "@type": "HowToTool",
+        "name": "timeseries-qc library"
+      }
+    ],
+    "supply": [
+      {
+        "@type": "HowToSupply",
+        "name": "Time series data in CSV format or pandas DataFrame"
+      }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Install timeseries-qc",
+        "text": "Install the library using pip install timeseries-qc",
+        "url": "https://nagusubra.github.io/timeseries-qc/installation/"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Import libraries",
+        "text": "Import tsqc and pandas",
+        "itemListElement": [{
+          "@type": "HowToDirection",
+          "text": "import tsqc\\nimport pandas as pd"
+        }]
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Load your data",
+        "text": "Read your time series data from a CSV file or create a DataFrame with timestamp, tag_name, and value columns",
+        "itemListElement": [{
+          "@type": "HowToDirection",
+          "text": "df = pd.read_csv('sensor_data.csv')"
+        }]
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Run quality check",
+        "text": "Execute the check function with your DataFrame. Specify assume_tz for timezone-naive data",
+        "itemListElement": [{
+          "@type": "HowToDirection",
+          "text": "result = tsqc.check(df, assume_tz='UTC')"
+        }]
+      },
+      {
+        "@type": "HowToStep",
+        "position": 5,
+        "name": "Visualize results",
+        "text": "Generate an interactive Plotly timeline chart showing quality status across all tags",
+        "itemListElement": [{
+          "@type": "HowToDirection",
+          "text": "result.plot().show()"
+        }]
+      }
+    ]
+  }
+  </script>
+  {% endif %}
+
+  {# Breadcrumb Schema for all pages #}
+  {% if page and page.ancestors %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://nagusubra.github.io/timeseries-qc/"
+      }
+      {% for ancestor in page.ancestors %}
+      ,{
+        "@type": "ListItem",
+        "position": {{ loop.index + 1 }},
+        "name": "{{ ancestor.title }}",
+        "item": "https://nagusubra.github.io/timeseries-qc/{{ ancestor.url }}"
+      }
+      {% endfor %}
+      ,{
+        "@type": "ListItem",
+        "position": {{ page.ancestors|length + 2 }},
+        "name": "{{ page.title }}",
+        "item": "{{ page.canonical_url }}"
+      }
+    ]
+  }
+  </script>
+  {% endif %}
 
   <!-- WebSite Schema + SearchAction (SEO) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "timeseries-qc",
+    "name": "timeseries-qc Documentation",
     "url": "https://nagusubra.github.io/timeseries-qc/",
     "potentialAction": {
       "@type": "SearchAction",

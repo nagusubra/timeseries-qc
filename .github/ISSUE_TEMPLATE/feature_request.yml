@@ -1,0 +1,87 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We love feature suggestions! Please describe your idea in detail.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What problem would this feature solve? What's your use case?
+      placeholder: |
+        I'm working with solar farm SCADA data and need to detect...
+        Currently, I have to manually...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should this feature work? What would the API look like?
+      placeholder: |
+        I'd like to see a new rule that...
+        
+        Example usage:
+        ```python
+        result = tsqc.check(df, rules=[NewRule(threshold=...)])
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches have you tried or considered?
+      placeholder: |
+        - Option A: Use a custom rule, but...
+        - Option B: Pre-process the data, but...
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: Benefits
+      description: How would this feature benefit the community?
+      placeholder: |
+        This would be useful for:
+        - Energy sector monitoring
+        - Manufacturing quality control
+        - etc.
+
+  - type: dropdown
+    id: industry
+    attributes:
+      label: Industry/sector
+      description: Which industry is this feature relevant to?
+      options:
+        - Energy (solar, wind, battery)
+        - Oil & Gas
+        - Manufacturing
+        - Utilities
+        - Environmental monitoring
+        - General/Multiple industries
+        - Other
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to contribute to this feature?
+      options:
+        - label: I'd be willing to submit a PR for this feature
+          required: false
+        - label: I'd be willing to test this feature
+          required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context, mockups, or examples
+      placeholder: Similar libraries that have this feature...

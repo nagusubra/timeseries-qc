@@ -1,0 +1,66 @@
+name: Question
+description: Ask a question about using timeseries-qc
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We're here to help!
+        
+        💡 **Before asking:**
+        - Check the [FAQ](https://nagusubra.github.io/timeseries-qc/faq/)
+        - Check the [Troubleshooting Guide](https://nagusubra.github.io/timeseries-qc/troubleshooting/)
+        - Search [existing issues](https://github.com/nagusubra/timeseries-qc/issues)
+        - Check [GitHub Discussions](https://github.com/nagusubra/timeseries-qc/discussions)
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What would you like to know?
+      placeholder: How do I...?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Tell us about your use case and what you've tried
+      placeholder: |
+        I'm working with OSIsoft PI historian data containing temperature sensors.
+        I've tried using FlatlineRule, but...
+        
+        My code:
+        ```python
+        # Your code here
+        ```
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic area
+      description: Which area is your question about?
+      options:
+        - Installation & setup
+        - Basic usage & API
+        - Rules & configuration
+        - YAML configuration
+        - SCADA/historian integration
+        - Visualization & reports
+        - Performance & optimization
+        - Troubleshooting
+        - Other
+
+  - type: input
+    id: version
+    attributes:
+      label: timeseries-qc version
+      placeholder: "0.4.2"
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional information
+      description: Any other details that might help us answer your question
