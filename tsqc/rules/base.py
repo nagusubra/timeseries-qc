@@ -33,5 +33,21 @@ class Rule(ABC):
         """
         ...
 
+    def get_reason(self, series: pd.Series, idx: int) -> str:
+        """Return the reason string for a flagged row at the given index.
+
+        Override this method to include contextual information (e.g., the actual
+        value that triggered the rule). The default implementation returns the
+        rule's name attribute.
+
+        Args:
+            series: The full value Series being checked.
+            idx: Integer position (iloc) of the flagged row.
+
+        Returns:
+            Reason string to be added to the quality_reasons column.
+        """
+        return self.name
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(level={self.level!r})"

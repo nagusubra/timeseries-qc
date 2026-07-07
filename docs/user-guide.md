@@ -125,7 +125,7 @@ result = tsqc.check(
 )
 ```
 
-When a value is not present in `quality_map`, it is automatically treated as `bad` with reason `external_quality_value: <raw_value>`.
+When a value is not present in `quality_map`, it is automatically treated as `bad` with reason `source_data_quality: <raw_value>`.
 
 ### Combined Mode — External + Internal Rules
 
@@ -142,9 +142,9 @@ result = tsqc.check(
 )
 ```
 
-- If external says `bad` and internal says `good` → final is `bad` with reason `external_quality_value: <raw_value>`
+- If external says `bad` and internal says `good` → final is `bad` with reason `source_data_quality: <raw_value>`
 - If external says `good` and internal says `bad` → final is `bad` with reason `null values` (internal reason preserved)
-- If both say `bad` → reasons are pipe-delimited: `null values|external_quality_value: <raw_value>`
+- If both say `bad` → reasons are pipe-delimited: `null values|source_data_quality: <raw_value>`
 
 ### None Mode — Internal Only
 
