@@ -9,7 +9,7 @@ description = "Classify timeseries data as Good / Sus / Bad based on logic and b
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
-keywords = ["timeseries", "data quality", "QC", "SCADA", "IoT", "pandas"]
+keywords = ["timeseries", "data-quality", "scada", "historian", "data-validation", "sensor-data", "industrial-iot"]
 authors = [
     { name = "timeseries-qc contributors" },
 ]
@@ -21,8 +21,16 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: System :: Monitoring",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Manufacturing",
+    "Intended Audience :: Developers",
     "Operating System :: OS Independent",
+    "Framework :: Matplotlib",
+    "Environment :: Console",
+    "Natural Language :: English",
 ]
 dependencies = [
     "pandas>=1.5",

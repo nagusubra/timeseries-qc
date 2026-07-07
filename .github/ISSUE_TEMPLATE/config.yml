@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://nagusubra.github.io/timeseries-qc/
+    about: Comprehensive documentation, guides, and tutorials
+  - name: 💬 GitHub Discussions
+    url: https://github.com/nagusubra/timeseries-qc/discussions
+    about: Ask questions, share examples, and discuss with the community
+  - name: 📖 FAQ
+    url: https://nagusubra.github.io/timeseries-qc/faq/
+    about: Frequently asked questions and common solutions
+  - name: 🔧 Troubleshooting Guide
+    url: https://nagusubra.github.io/timeseries-qc/troubleshooting/
+    about: Solutions to common problems
+  - name: 🎓 Quickstart Tutorial
+    url: https://nagusubra.github.io/timeseries-qc/quickstart/
+    about: Get started in 5 lines of code
