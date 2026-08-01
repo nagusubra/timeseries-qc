@@ -41,3 +41,14 @@ jobs:
           python-version: "3.11"
       - run: pip install ruff
       - run: ruff check tsqc/
+
+  version-consistency:
+    name: Version consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Check agent/doc versions match pyproject.toml
+        run: python scripts/check_versions.py

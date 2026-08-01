@@ -1,0 +1,86 @@
+[
+  {
+    "question": "What is time series quality control?",
+    "answer": "Time series quality control is the process of detecting and classifying data quality issues in sequential measurements. This includes identifying null values, flatline sensors, out-of-range readings, sudden spikes, timestamp gaps, and other anomalies that can corrupt downstream analysis."
+  },
+  {
+    "question": "What is SCADA data quality?",
+    "answer": "SCADA (Supervisory Control and Data Acquisition) data quality refers to the reliability and accuracy of measurements collected from industrial control systems. Poor SCADA data quality can lead to incorrect operational decisions, false alarms, and inaccurate reporting."
+  },
+  {
+    "question": "How does timeseries-qc classify data?",
+    "answer": "Every row is classified as good (passes all rules), suspect (may be unreliable), or bad (should be excluded). This three-level system provides more nuance than binary pass/fail approaches."
+  },
+  {
+    "question": "How do I install timeseries-qc?",
+    "answer": "See the Installation Guide for details."
+  },
+  {
+    "question": "Can I use timeseries-qc with CSV files?",
+    "answer": "Yes. Load your CSV with pandas and pass the DataFrame to tsqc.check():"
+  },
+  {
+    "question": "Can I use multiple tags?",
+    "answer": "Yes. Include a tagname column in your DataFrame. Each unique value is treated as a separate sensor. You can apply different rules to different tags using YAML configuration."
+  },
+  {
+    "question": "Can I use UTC?",
+    "answer": "Yes. Pass assumetz=\"UTC\" for tz-naive data, or pass tz-aware timestamps already in UTC. Internally, the library normalizes all timestamps to UTC for consistent rule evaluation (flatline windows, gap detection, etc.). However, result.df, result.plot(), issuesummary(), and checktimestamps() all return timestamps in the original input timezone — so the chart x-axis, hover tooltips, and summary tables all show local time automatically."
+  },
+  {
+    "question": "What timezone does the chart display?",
+    "answer": "The chart x-axis and hover tooltips always display timestamps in the same timezone as your input data. If you pass assumetz=\"America/Edmonton\", the chart shows Edmonton local time. If your timestamps are already tz-aware, their existing timezone is used. No extra parameter is needed."
+  },
+  {
+    "question": "Can I see what timezone the library is using?",
+    "answer": "Yes. result.displaytz returns the IANA timezone string (e.g., \"America/Edmonton\", \"UTC\") used for all timestamp display."
+  },
+  {
+    "question": "Can I export HTML reports?",
+    "answer": "Yes. result.exportreport(\"report.html\") produces a self-contained HTML file. See Report Generation."
+  },
+  {
+    "question": "What is a flatline sensor?",
+    "answer": "A flatline sensor is one that reports the same (or nearly the same) value for an extended period, indicating the sensor may be stuck, frozen, or disconnected."
+  },
+  {
+    "question": "How do I detect sensor drift?",
+    "answer": "Use the DeltaRule to flag readings that change too much between consecutive measurements. The 3-sigma auto-configured threshold catches unusually large changes."
+  },
+  {
+    "question": "How do I detect timestamp gaps?",
+    "answer": "Use result.checktimestamps() which identifies gaps where the time difference exceeds twice the expected frequency."
+  },
+  {
+    "question": "How do I detect duplicate timestamps?",
+    "answer": "result.checktimestamps() also detects duplicate timestamps automatically."
+  },
+  {
+    "question": "How does YAML configuration work?",
+    "answer": "Create a YAML file with defaultrules (applied to all tags) and tagrules (applied to specific tags or glob patterns). See YAML Configuration."
+  },
+  {
+    "question": "Can I use glob patterns for tag matching?",
+    "answer": "Yes. Tag patterns support and ? wildcards, e.g. \"GENERATOR.\" matches all tags starting with GENERATOR.."
+  },
+  {
+    "question": "How does timeseries-qc compare to Great Expectations?",
+    "answer": "Great Expectations is a general-purpose data validation framework with no timeseries-specific features. It offers binary pass/fail classification and no timeline visualization."
+  },
+  {
+    "question": "How does it compare to SaQC?",
+    "answer": "SaQC is designed for environmental science data with an environmental-domain-specific API. It lacks timeline visualization and uses an LGPL license."
+  },
+  {
+    "question": "How does it compare to Pecos?",
+    "answer": "Pecos (Sandia Labs) has been in maintenance mode since 2021. It offers binary pass/fail classification without timeline charts or YAML configuration."
+  },
+  {
+    "question": "Why am I getting \"Column has no timezone info\"?",
+    "answer": "Your timestamp column is tz-naive. Pass assumetz=\"UTC\" (or your timezone) to tsqc.check()."
+  },
+  {
+    "question": "Why is my YAML file not being found?",
+    "answer": "The path to your YAML file must exist. If the file is in the current directory, use rules=\"tsqcrules.yaml\". See Troubleshooting for more."
+  }
+]

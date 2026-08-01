@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Callable
 
+import numpy as np
 import pandas as pd
 
 from tsqc.rules.base import Rule
@@ -61,7 +62,10 @@ class FlatlineRule(Rule):
         # rolling().std() requires a DatetimeIndex with the window offset.
         not_nan = series.notna()
 
-        # Fill NaN temporarily so rolling std doesn't propagate NaN further
+        # Fill NaN temporarily so rolling std doesn't propagate NaN further.
+        # Intentional: ffill/bfill bridges NaN gaps so a sensor that returns to
+        # the same value after a null stretch can still be scored as flat across
+        # that gap. Changing this would alter output — keep for compatibility.
         filled = series.ffill().bfill()
 
         # rolling std over a time-based window; min_periods=2 so we need ≥2 pts
@@ -82,26 +86,18 @@ class FlatlineRule(Rule):
     def _filter_short_flatlines(self, flagged: pd.Series) -> pd.Series:
         """Remove flagged runs whose total time span < min_duration."""
         min_dur = pd.Timedelta(self.min_duration)
-        result = flagged.copy()
-        vals = flagged.to_numpy()
+        vals = flagged.to_numpy(dtype=bool, copy=True)
         idx = flagged.index  # monotonic DatetimeIndex
 
-        i = 0
-        n = len(vals)
-        while i < n:
-            if not vals[i]:
-                i += 1
-                continue
-            # Start of a flagged run
-            run_start = i
-            while i < n and vals[i]:
-                i += 1
-            run_end = i - 1
-            span = idx[run_end] - idx[run_start]
-            if span < min_dur:
-                result.iloc[run_start : i] = False
+        padded = np.concatenate([[False], vals, [False]])
+        edges = np.diff(padded.astype(np.int8))
+        starts = np.flatnonzero(edges == 1)
+        ends = np.flatnonzero(edges == -1)  # exclusive
+        for s, e in zip(starts, ends):
+            if idx[e - 1] - idx[s] < min_dur:
+                vals[s:e] = False
 
-        return result
+        return pd.Series(vals, index=idx)
 
     def __repr__(self) -> str:
         parts = [
@@ -119,15 +115,26 @@ class FlatlineRule(Rule):
         Format: "flatline @ <value>" with 4 decimal places.
         Handles special values: nan, inf, -inf.
         """
-        value = series.iloc[idx]
+        return self._format_flatline_value(series.iloc[idx])
+
+    def get_reasons_vectorized(self, series: pd.Series, mask: np.ndarray) -> np.ndarray:
+        """Vectorised flatline reasons for flagged rows."""
+        out = np.full(len(series), "", dtype=object)
+        if not mask.any():
+            return out
+        vals = series.to_numpy(copy=False)
+        out[mask] = [self._format_flatline_value(v) for v in vals[mask]]
+        return out
+
+    @staticmethod
+    def _format_flatline_value(value) -> str:
         if pd.isna(value):
             return "flatline @ nan"
-        elif value == float("inf"):
+        if value == float("inf"):
             return "flatline @ inf"
-        elif value == float("-inf"):
+        if value == float("-inf"):
             return "flatline @ -inf"
-        else:
-            return f"flatline @ {value:.4f}"
+        return f"flatline @ {value:.4f}"
 
 
 class DeltaRule(Rule):
@@ -171,17 +178,15 @@ class DeltaRule(Rule):
         diff = series.diff().abs()
         not_nan = series.notna()
 
-        flagged = pd.Series(False, index=series.index, dtype=bool)
-
+        flagged = np.zeros(len(series), dtype=bool)
         if self.max_delta is not None:
-            flagged = flagged | (diff > self.max_delta)
+            flagged |= (diff > self.max_delta).fillna(False).to_numpy(dtype=bool)
         if self.min_delta is not None:
             # NaN (first row) comparison returns False, so first row is safe
-            flagged = flagged | (diff < self.min_delta)
+            flagged |= (diff < self.min_delta).fillna(False).to_numpy(dtype=bool)
 
-        # Mask out rows where the value itself is NaN
-        flagged = flagged & not_nan
-        return flagged.fillna(False)
+        flagged &= not_nan.to_numpy(dtype=bool)
+        return pd.Series(flagged, index=series.index)
 
     def __repr__(self) -> str:
         parts = []
@@ -218,15 +223,15 @@ class RangeRule(Rule):
 
     def check(self, series: pd.Series) -> pd.Series:
         # NaN rows: return False — NullRule handles them
-        not_nan = series.notna()
-        flagged = pd.Series(False, index=series.index)
+        not_nan = series.notna().to_numpy(dtype=bool)
+        flagged = np.zeros(len(series), dtype=bool)
 
         if self.min_val is not None:
-            flagged = flagged | (series < self.min_val)
+            flagged |= (series < self.min_val).fillna(False).to_numpy(dtype=bool)
         if self.max_val is not None:
-            flagged = flagged | (series > self.max_val)
+            flagged |= (series > self.max_val).fillna(False).to_numpy(dtype=bool)
 
-        return flagged & not_nan
+        return pd.Series(flagged & not_nan, index=series.index)
 
     def __repr__(self) -> str:
         return (
@@ -329,22 +334,25 @@ class OutlierRule(Rule):
             return (valid < lower) | (valid > upper)
 
     def _check_rolling(self, valid: pd.Series) -> pd.Series:
+        roller = valid.rolling(self.window, min_periods=self.min_periods)
         if self.method == "zscore":
-            mean = valid.rolling(self.window, min_periods=self.min_periods).mean()
-            std = valid.rolling(self.window, min_periods=self.min_periods).std()
+            mean = roller.mean()
+            std = roller.std()
             scores = (valid - mean) / std.replace(0, float("nan"))
             return scores.abs() > self.threshold
 
         elif self.method == "mad":
-            median = valid.rolling(self.window, min_periods=self.min_periods).median()
+            median = roller.median()
             abs_dev = (valid - median).abs()
+            # Second rolling pass needed for MAD of absolute deviations
             mad = abs_dev.rolling(self.window, min_periods=self.min_periods).median()
             scores = 0.6745 * (valid - median) / mad.replace(0, float("nan"))
             return scores.abs() > self.threshold
 
         elif self.method == "iqr":
-            q1 = valid.rolling(self.window, min_periods=self.min_periods).quantile(0.25)
-            q3 = valid.rolling(self.window, min_periods=self.min_periods).quantile(0.75)
+            # Reuse one Rolling object; quantile still requires two kernel passes
+            q1 = roller.quantile(0.25)
+            q3 = roller.quantile(0.75)
             iqr = q3 - q1
             lower = q1 - self.threshold * iqr
             upper = q3 + self.threshold * iqr

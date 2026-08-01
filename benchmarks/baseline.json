@@ -1,0 +1,32 @@
+{
+  "library": "timeseries-qc",
+  "cases": [
+    {
+      "n_rows": 10000,
+      "n_tags": 10,
+      "repeats": 2,
+      "median_s": 0.071764,
+      "min_s": 0.06852,
+      "max_s": 0.075008,
+      "peak_tracemalloc_mib": 2.048
+    },
+    {
+      "n_rows": 100000,
+      "n_tags": 50,
+      "repeats": 2,
+      "median_s": 0.365341,
+      "min_s": 0.362989,
+      "max_s": 0.367693,
+      "peak_tracemalloc_mib": 18.894
+    },
+    {
+      "n_rows": 500000,
+      "n_tags": 100,
+      "repeats": 2,
+      "median_s": 0.888154,
+      "min_s": 0.885491,
+      "max_s": 0.890818,
+      "peak_tracemalloc_mib": 92.969
+    }
+  ]
+}

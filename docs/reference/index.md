@@ -9,7 +9,7 @@ Quick reference materials for `timeseries-qc`.
 
 <div class="tsqc-grid" markdown="1">
 <div class="tsqc-grid-item" markdown="1">
-**[Comparison](../comparison.md)**
+**[Why timeseries-qc?](../why-timeseries-qc.md)**
 
 How timeseries-qc compares to Pecos, SaQC, and Great Expectations.
 </div>

@@ -375,4 +375,4 @@ print(ts_issues)
 - [API Reference](api-reference.md) - Full API documentation
 - [YAML Configuration](yaml-configuration.md) - Configure rules in YAML
 - [SCADA Integration Guide](scada-integration.md) - OSIsoft PI, OPC UA, etc.
-- [Tutorials](tutorials/) - Step-by-step industry-specific guides
+- [Tutorials](tutorials/index.md) - Step-by-step industry-specific guides

@@ -1,7 +1,6 @@
 ---
 title: LLM & AI Agent Context — timeseries-qc
 description: Context file optimized for LLMs and AI coding agents. Complete reference for using timeseries-qc in agent-assisted development workflows.
-robots: noindex
 ---
 
 # LLM & AI Agent Context

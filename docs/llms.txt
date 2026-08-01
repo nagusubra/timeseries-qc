@@ -36,12 +36,12 @@
 
 - [FAQ](https://nagusubra.github.io/timeseries-qc/faq/): Frequently asked questions about time series QC and library usage.
 - [Glossary](https://nagusubra.github.io/timeseries-qc/glossary/): Terms and definitions (SCADA, DCS, historian, flatline, OPC UA, etc.).
-- [Comparison](https://nagusubra.github.io/timeseries-qc/comparison/): Comparison with Pecos, SaQC, and Great Expectations.
+- [Why timeseries-qc?](https://nagusubra.github.io/timeseries-qc/why-timeseries-qc/): Comparison with Pecos, SaQC, and Great Expectations.
 - [Troubleshooting](https://nagusubra.github.io/timeseries-qc/troubleshooting/): Common issues and solutions.
 
 ## Project
 
-- [Changelog](https://nagusubra.github.io/timeseries-qc/changelog/): Version history (0.1.0 through 0.4.1).
+- [Changelog](https://nagusubra.github.io/timeseries-qc/changelog/): Version history (0.1.0 through 0.4.2).
 - [Roadmap](https://nagusubra.github.io/timeseries-qc/roadmap/): Planned features — CLI tool, Parquet support, Spark/Dask backend.
 - [Contributing](https://nagusubra.github.io/timeseries-qc/contributing/): Development setup, testing, adding new rules, and PR process.
 
@@ -56,4 +56,5 @@
 
 ## Specifications
 
-- [OpenAPI spec](https://nagusubra.github.io/timeseries-qc/sitemap.xml): Sitemap for full site indexing.
+- [Sitemap](https://nagusubra.github.io/timeseries-qc/sitemap.xml): XML sitemap for full site indexing.
+- [llms-full.txt](https://nagusubra.github.io/timeseries-qc/llms-full.txt): Expanded LLM context for this documentation site.

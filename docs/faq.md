@@ -116,6 +116,6 @@ The path to your YAML file must exist. If the file is in the current directory, 
 
 ## Next Steps
 
-- [Comparison](comparison.md) — detailed comparison with alternatives
+- [Why timeseries-qc?](why-timeseries-qc.md) — detailed comparison with alternatives
 - [Glossary](glossary.md) — definitions of technical terms
 - [Troubleshooting](troubleshooting.md) — common issues and solutions

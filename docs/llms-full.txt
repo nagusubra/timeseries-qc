@@ -104,7 +104,7 @@ result = tsqc.check(
 - `exclusive`: External column only, no internal rules
 - `combined`: Merge external + internal with worst-wins (bad > sus > good)
 - `none`: Ignore external column (escape hatch)
-- Unmapped values become `bad` with reason `external_quality_value: <raw_value>`
+- Unmapped values become `bad` with reason `source_data_quality: <raw_value>`
 - Column name conflicts auto-rename output to `qc_quality`/`qc_quality_reasons`
 
 ### Interpreting Results
@@ -356,6 +356,11 @@ tsqc/
 
 ## Changelog
 
+### 0.4.2 — 2026-07-07
+- Flatline reasons include stuck value (`flatline @ 42.5000`)
+- External quality reason prefix renamed to `source_data_quality:`
+- Hover tooltip label updated (`Reason:` instead of `Cause:`)
+
 ### 0.4.1 — 2026-07-03
 - **Bug Fixes**: Fixed OutlierRule import and test edge cases. Removed test result documentation.
 - **Tests**: All 163 tests pass.
@@ -439,7 +444,7 @@ Each use case has a synthetic data generator under `synthetic_data_generation/`.
 
 ---
 
-## Known Limitations (v0.4.1)
+## Known Limitations (v0.4.2)
 
 1. Pandas only (PySpark and Polars planned)
 2. No YAML override of default rules (tag rules add to defaults)

@@ -8,35 +8,40 @@
   <link rel="manifest" href="site.webmanifest">
   <link rel="apple-touch-icon" href="assets/images/favicon.svg">
 
-  {# Open Graph & Twitter Card meta tags for key pages #}
-  {% if page and page.meta %}
-    {% if page.meta.og_image %}
-      <meta property="og:image" content="{{ page.meta.og_image }}">
-      <meta name="twitter:image" content="{{ page.meta.og_image }}">
-    {% endif %}
-    {% if page.meta.og_title %}
-      <meta property="og:title" content="{{ page.meta.og_title }}">
-      <meta name="twitter:title" content="{{ page.meta.og_title }}">
-    {% endif %}
-    {% if page.meta.og_description %}
-      <meta property="og:description" content="{{ page.meta.og_description }}">
-      <meta name="twitter:description" content="{{ page.meta.og_description }}">
-    {% endif %}
+  {# Honor front-matter robots: noindex when present #}
+  {% if page and page.meta and page.meta.robots %}
+    <meta name="robots" content="{{ page.meta.robots }}">
   {% endif %}
-  
+
+  {# Open Graph & Twitter Card meta tags #}
+  {% set _og_title = (page.meta.og_title if page and page.meta and page.meta.og_title else (page.title if page else config.site_name)) %}
+  {% set _og_desc = (page.meta.og_description if page and page.meta and page.meta.og_description else (page.meta.description if page and page.meta and page.meta.description else config.site_description)) %}
+  {% set _og_image = (page.meta.og_image if page and page.meta and page.meta.og_image else "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png") %}
+
+  <meta property="og:title" content="{{ _og_title }}">
+  <meta property="og:description" content="{{ _og_desc }}">
+  <meta property="og:image" content="{{ _og_image }}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ page.canonical_url }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@timeseries_qc">
+  <meta name="twitter:title" content="{{ _og_title }}">
+  <meta name="twitter:description" content="{{ _og_desc }}">
+  <meta name="twitter:image" content="{{ _og_image }}">
+
+  {% set org_id = "https://nagusubra.github.io/timeseries-qc/#organization" %}
+  {% set website_id = "https://nagusubra.github.io/timeseries-qc/#website" %}
+  {% set software_id = "https://nagusubra.github.io/timeseries-qc/#software" %}
+  {% set date_modified = page.meta.git_revision_date_localized_raw_iso_date if page and page.meta and page.meta.git_revision_date_localized_raw_iso_date else "2026-07-07" %}
 
   <!-- Organization Schema -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "{{ org_id }}",
     "name": "timeseries-qc",
     "url": "https://nagusubra.github.io/timeseries-qc/",
-    "logo": "https://nagusubra.github.io/timeseries-qc/assets/images/logo.png",
+    "logo": "https://nagusubra.github.io/timeseries-qc/assets/images/logo.svg",
     "sameAs": [
       "https://github.com/nagusubra/timeseries-qc",
       "https://pypi.org/project/timeseries-qc/"
@@ -45,12 +50,13 @@
   }
   </script>
 
-  {# Homepage - Enhanced SoftwareApplication Schema #}
-  {% if page.title and "timeseries-qc — Quality Control" in page.title %}
+  {# Homepage - SoftwareApplication Schema #}
+  {% if page and page.is_homepage %}
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
+    "@id": "{{ software_id }}",
     "name": "timeseries-qc",
     "alternateName": "tsqc",
     "applicationCategory": "DeveloperApplication",
@@ -67,12 +73,11 @@
     "codeRepository": "https://github.com/nagusubra/timeseries-qc",
     "softwareVersion": "0.4.2",
     "datePublished": "2026-01-15",
-    "dateModified": "2026-07-07",
+    "dateModified": "{{ date_modified }}",
     "license": "https://opensource.org/licenses/MIT",
-    "author": {
-      "@type": "Organization",
-      "name": "timeseries-qc contributors"
-    },
+    "author": { "@id": "{{ org_id }}" },
+    "publisher": { "@id": "{{ org_id }}" },
+    "isPartOf": { "@id": "{{ website_id }}" },
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -96,68 +101,30 @@
   </script>
   {% endif %}
 
-  {# FAQ Page - FAQPage Schema #}
-  {% if "faq" in page.url %}
+  {# FAQ Page - FAQPage Schema generated from docs/faq.md #}
+  {% if page and page.file.src_uri == "faq.md" and faq_items is defined and faq_items %}
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
+      {% for item in faq_items %}
       {
         "@type": "Question",
-        "name": "What is timeseries-qc?",
+        "name": {{ item.question | tojson }},
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "timeseries-qc is an open-source Python library that adds good/suspect/bad quality labels to every row of a pandas DataFrame containing time series data. It includes five built-in rules (null, flatline, delta, range, outlier), YAML configuration, and Plotly timeline visualization."
+          "text": {{ item.answer | tojson }}
         }
-      },
-      {
-        "@type": "Question",
-        "name": "What data sources does timeseries-qc support?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "timeseries-qc works with any pandas DataFrame containing timestamp, tag_name, and value columns. It's commonly used with SCADA systems, DCS platforms, IoT devices, and historian databases like OSIsoft PI, Wonderware, and Ignition."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How do I install timeseries-qc?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Install via pip: pip install timeseries-qc. Requires Python 3.9+ and dependencies: pandas>=1.5, plotly>=5.0, pyyaml>=6.0."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Can I use timeseries-qc with historian quality columns?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes! Version 0.4.0+ supports external quality columns with three modes: exclusive (use historian quality only), combined (merge historian + internal rules), or none (ignore historian column)."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How does timeseries-qc compare to Pecos or Great Expectations?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "timeseries-qc is the only library that combines good/suspect/bad three-level classification, multi-tag horizontal timeline visualization, YAML-driven configuration, and statistical outlier detection in a single package. Pecos offers binary pass/fail and is in maintenance mode. Great Expectations is not timeseries-native."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What industries use timeseries-qc?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "timeseries-qc is used in solar energy, wind energy, battery storage, oil & gas, manufacturing, utilities, and environmental monitoring. Any industry with SCADA, DCS, or IoT sensor data can benefit."
-        }
-      }
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
     ]
   }
   </script>
   {% endif %}
 
   {# Quickstart Page - HowTo Schema #}
-  {% if "quickstart" in page.url %}
+  {% if page and page.file.src_uri == "quickstart.md" %}
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -172,20 +139,11 @@
       "value": "0"
     },
     "tool": [
-      {
-        "@type": "HowToTool",
-        "name": "Python 3.9 or higher"
-      },
-      {
-        "@type": "HowToTool",
-        "name": "timeseries-qc library"
-      }
+      { "@type": "HowToTool", "name": "Python 3.9 or higher" },
+      { "@type": "HowToTool", "name": "timeseries-qc library" }
     ],
     "supply": [
-      {
-        "@type": "HowToSupply",
-        "name": "Time series data in CSV format or pandas DataFrame"
-      }
+      { "@type": "HowToSupply", "name": "Time series data in CSV format or pandas DataFrame" }
     ],
     "step": [
       {
@@ -200,40 +158,28 @@
         "position": 2,
         "name": "Import libraries",
         "text": "Import tsqc and pandas",
-        "itemListElement": [{
-          "@type": "HowToDirection",
-          "text": "import tsqc\\nimport pandas as pd"
-        }]
+        "itemListElement": [{ "@type": "HowToDirection", "text": "import tsqc\\nimport pandas as pd" }]
       },
       {
         "@type": "HowToStep",
         "position": 3,
         "name": "Load your data",
         "text": "Read your time series data from a CSV file or create a DataFrame with timestamp, tag_name, and value columns",
-        "itemListElement": [{
-          "@type": "HowToDirection",
-          "text": "df = pd.read_csv('sensor_data.csv')"
-        }]
+        "itemListElement": [{ "@type": "HowToDirection", "text": "df = pd.read_csv('sensor_data.csv')" }]
       },
       {
         "@type": "HowToStep",
         "position": 4,
         "name": "Run quality check",
         "text": "Execute the check function with your DataFrame. Specify assume_tz for timezone-naive data",
-        "itemListElement": [{
-          "@type": "HowToDirection",
-          "text": "result = tsqc.check(df, assume_tz='UTC')"
-        }]
+        "itemListElement": [{ "@type": "HowToDirection", "text": "result = tsqc.check(df, assume_tz='UTC')" }]
       },
       {
         "@type": "HowToStep",
         "position": 5,
         "name": "Visualize results",
         "text": "Generate an interactive Plotly timeline chart showing quality status across all tags",
-        "itemListElement": [{
-          "@type": "HowToDirection",
-          "text": "result.plot().show()"
-        }]
+        "itemListElement": [{ "@type": "HowToDirection", "text": "result.plot().show()" }]
       }
     ]
   }
@@ -277,8 +223,10 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": "{{ website_id }}",
     "name": "timeseries-qc Documentation",
     "url": "https://nagusubra.github.io/timeseries-qc/",
+    "publisher": { "@id": "{{ org_id }}" },
     "potentialAction": {
       "@type": "SearchAction",
       "target": {

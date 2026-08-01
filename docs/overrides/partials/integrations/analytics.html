@@ -1,0 +1,4 @@
+{# Optional Plausible analytics — enable via extra.analytics in mkdocs.yml #}
+{% if config.extra.analytics and config.extra.analytics.provider == "custom" %}
+<script defer data-domain="{{ config.extra.analytics.property }}" src="https://plausible.io/js/script.js"></script>
+{% endif %}

@@ -1,6 +1,6 @@
 # timeseries-qc — Copilot Instructions
 
-This project uses [timeseries-qc](https://pypi.org/project/timeseries-qc/) (v0.3.2) for time series data quality control.
+This project uses [timeseries-qc](https://pypi.org/project/timeseries-qc/) (v0.4.2) for time series data quality control.
 
 ## One-Shot Pattern
 ```python
@@ -18,9 +18,21 @@ result.plot().show()
 
 ## Rules
 - **YAML config preferred:** `result = tsqc.check(df, rules="tsqc_rules.yaml")`
-- 4 built-in rules: `null`, `flatline`, `delta`, `range`
+- 5 built-in rules: `null`, `flatline`, `delta`, `range`, `outlier`
 - Levels: `bad` > `sus` > `good` (worst wins)
 - Tag rules ADD to defaults
+
+## External Quality Column
+```python
+result = tsqc.check(
+    df,
+    external_quality_col="status",
+    quality_mode="combined",  # exclusive | combined | none
+    quality_map={0: "good", 1: "sus", 2: "bad", 3: "bad", 4: "bad"},
+    assume_tz="UTC",
+)
+```
+- Unmapped values → `bad` with reason `source_data_quality: <value>`
 
 ## Common Mistakes
 1. Missing `assume_tz` on tz-naive data

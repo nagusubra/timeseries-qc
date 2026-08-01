@@ -37,6 +37,7 @@ class QCResult:
         self.reasons_col = reasons_col
         self.ambiguous_timestamps: list[pd.Timestamp] = ambiguous_timestamps or []
         self._display_tz = display_tz
+        self._rle_cache: pd.DataFrame | None = None
 
     @property
     def display_tz(self) -> str:
@@ -111,34 +112,32 @@ class QCResult:
         Returns:
             plotly.graph_objects.Figure (call .show() to display).
         """
-        from tsqc.viz.rle import encode_quality_runs
         from tsqc.viz.timeline import build_timeline_figure
 
-        df = self._df.copy()
+        filtered = False
+        df = self._df
 
         # Apply tag filter
         if tags is not None and self.tag_col in df.columns:
             df = df[df[self.tag_col].isin(tags)]
+            filtered = True
 
         # Apply time filter — bare strings are interpreted in the display timezone
         if start is not None:
             start_ts = pd.Timestamp(start, tz=self._display_tz) if "+" not in start and "Z" not in start else pd.Timestamp(start)
             df = df[df[self.time_col] >= start_ts]
+            filtered = True
         if end is not None:
             end_ts = pd.Timestamp(end, tz=self._display_tz) if "+" not in end and "Z" not in end else pd.Timestamp(end)
             df = df[df[self.time_col] <= end_ts]
+            filtered = True
 
-        segments = encode_quality_runs(
-            df,
-            time_col=self.time_col,
-            tag_col=self.tag_col,
-            quality_col=self.quality_col,
-            reasons_col=self.reasons_col,
-        )
-
-        summary = self.summary()
-        if tags is not None:
-            summary = summary[summary["tag_name"].isin(tags)]
+        if filtered:
+            segments = self._encode_runs(df)
+            summary = None  # derive tag order from segments
+        else:
+            segments = self._cached_runs()
+            summary = self.summary()
 
         return build_timeline_figure(
             segments=segments,
@@ -147,6 +146,22 @@ class QCResult:
             height=height,
             display_tz=self._display_tz,
         )
+
+    def _encode_runs(self, df: pd.DataFrame) -> pd.DataFrame:
+        from tsqc.viz.rle import encode_quality_runs
+
+        return encode_quality_runs(
+            df,
+            time_col=self.time_col,
+            tag_col=self.tag_col,
+            quality_col=self.quality_col,
+            reasons_col=self.reasons_col,
+        )
+
+    def _cached_runs(self) -> pd.DataFrame:
+        if self._rle_cache is None:
+            self._rle_cache = self._encode_runs(self._df)
+        return self._rle_cache
 
     # ------------------------------------------------------------------ #
     #  check_timestamps()
@@ -188,17 +203,8 @@ class QCResult:
         Columns: tag_name, issue_start_time, issue_end_time,
                  n_rows_with_issues, status, totalDuration_hours, reasons
         """
-        from tsqc.viz.rle import encode_quality_runs
-
-        segments = encode_quality_runs(
-            self._df,
-            time_col=self.time_col,
-            tag_col=self.tag_col,
-            quality_col=self.quality_col,
-            reasons_col=self.reasons_col,
-        )
-
-        segments = segments[segments["quality"] != "good"].copy()
+        segments = self._cached_runs()
+        segments = segments[segments["quality"] != "good"]
         _has_reasons = "reasons" in segments.columns
 
         if segments.empty:
@@ -210,66 +216,19 @@ class QCResult:
                 cols.append("reasons")
             return pd.DataFrame(columns=cols)
 
-        # Count actual rows per tag/start/end segment
-        df = self._df.copy()
-        if self.tag_col is not None and self.tag_col in df.columns:
-            grouped = df.groupby(self.tag_col)
-        else:
-            grouped = [("default", df)]
-
-        row_counts: dict[tuple, int] = {}
-        for tag, group in grouped:
-            group = group.sort_values(self.time_col)
-            qualities = group[self.quality_col].to_list()
-            timestamps = group[self.time_col].to_list()
-
-            n = len(group)
-            run_starts = [0]
-            for i in range(1, n):
-                if qualities[i] != qualities[i - 1]:
-                    run_starts.append(i)
-            run_starts.append(n)
-
-            for j in range(len(run_starts) - 1):
-                s_idx = run_starts[j]
-                e_idx = run_starts[j + 1]
-                start_ts = timestamps[s_idx]
-                quality = qualities[s_idx]
-                end_ts = timestamps[e_idx - 1] if e_idx <= n else timestamps[-1]
-                key = (tag, start_ts, end_ts, quality)
-                row_counts[key] = e_idx - s_idx
-
         records = []
-        for _, seg in segments.iterrows():
-            tag = seg["tag_name"]
-            start = seg["start"]
-            end = seg["end"]
-            quality = seg["quality"]
-            if self.tag_col is not None and self.tag_col in df.columns:
-                mask = (
-                    (df[self.tag_col] == tag)
-                    & (df[self.time_col] >= start)
-                    & (df[self.time_col] < end)
-                    & (df[self.quality_col] == quality)
-                )
-            else:
-                mask = (
-                    (df[self.time_col] >= start)
-                    & (df[self.time_col] < end)
-                    & (df[self.quality_col] == quality)
-                )
-            n_rows = mask.sum()
-            duration_hours = round(seg["duration_seconds"] / 3600, 1)
+        for seg in segments.itertuples(index=False):
+            duration_hours = round(seg.duration_seconds / 3600, 1)
             record = {
-                "tag_name": tag,
-                "issue_start_time": start.isoformat(),
-                "issue_end_time": end.isoformat(),
-                "n_rows_with_issues": int(n_rows),
-                "status": quality,
+                "tag_name": seg.tag_name,
+                "issue_start_time": seg.start.isoformat(),
+                "issue_end_time": seg.end.isoformat(),
+                "n_rows_with_issues": int(seg.n_rows),
+                "status": seg.quality,
                 "totalDuration_hours": duration_hours,
             }
             if _has_reasons:
-                record["reasons"] = seg.get("reasons", "")
+                record["reasons"] = getattr(seg, "reasons", "")
             records.append(record)
 
         result_df = pd.DataFrame(records)
