@@ -5,6 +5,21 @@ description: Version history and release notes for the timeseries-qc library.
 
 # Changelog
 
+## Unreleased
+
+### Infrastructure
+
+- **CI Least-Privilege Permissions**: Added explicit `contents: read` workflow permissions to `ci.yml`, resolving all CodeQL `actions/missing-workflow-permissions` alerts. (`#55`)
+- **Deploy Fix**: Corrected the apt package name in the GitHub Pages deploy workflow from `libzlib1g-dev` to `zlib1g-dev`, which caused the Pages build to fail. (`#51`)
+- **Vectorized QC Hot Path**: Rewrote the core check loop for vectorized pandas operations, dramatically improving performance on large multi-tag datasets. (`#50`)
+- **SEO/AEO Documentation Overhaul**: Added structured data (FAQPage JSON-LD), llms.txt/llms-full.txt, robots.txt, and a search-friendly sitemap to the documentation site. (`#50`)
+
+### Fixes
+
+- **Windows Console Compatibility**: Replaced non-ASCII `→` characters in `generate_solar_data.py` and `generate_hydro_data.py` output, which crashed with `UnicodeEncodeError` on Windows (cp1252) consoles.
+- **Smoke Test Rules Path**: `synthetic_data_generation/smoke_test.py` now resolves `hydro_rules.yaml` relative to its own directory instead of a non-existent `data/` path.
+- **Contributing Guide**: Fixed the repository clone URL and aligned the documented coverage threshold (75%) with CI enforcement.
+
 ## 0.4.2 — 2026-07-07
 
 ### Features

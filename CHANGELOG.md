@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CHANGELOG.md with explicit semantic versioning convention
 
+### Fixed
+
+- CI workflow now declares read-only `contents` permissions (CodeQL least-privilege)
+- Synthetic data generators no longer crash on Windows consoles (replaced unencodable `→` characters in output)
+- `synthetic_data_generation/smoke_test.py` resolves `hydro_rules.yaml` from its own directory instead of a non-existent `data/` path
+- Corrected package name in `CONTRIBUTING.md` clone command
+- Aligned documented coverage threshold (75%) with CI enforcement
+
 ## [0.4.2] - 2026-07-07
 
 ### Added
