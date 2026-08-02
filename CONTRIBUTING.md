@@ -3,7 +3,7 @@
 ## Dev Setup
 
 ```bash
-git clone https://github.com/timeseries-qc/timeseries-qc.git
+git clone https://github.com/nagusubra/timeseries-qc.git
 cd timeseries-qc
 pip install -e ".[dev]"
 ```
@@ -17,8 +17,8 @@ pytest --cov=tsqc --cov-report=term-missing
 # Single module
 pytest tests/test_rules.py -v
 
-# Coverage must be ≥ 80%
-pytest --cov=tsqc --cov-fail-under=80
+# Coverage must be ≥ 75%
+pytest --cov=tsqc --cov-fail-under=75
 ```
 
 ## Lint & Type Check

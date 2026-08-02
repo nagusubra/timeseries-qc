@@ -1,12 +1,16 @@
 """Smoke test for hydro integration — run from repo root."""
+import os
+
 import pandas as pd
 import tsqc
+
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 df = pd.read_csv("data/hydro_plant_scada.csv")
 n_tags = df["tag_name"].nunique()
 print(f"Loaded {len(df):,} rows, {n_tags} tags")
 
-result = tsqc.check(df, rules="data/hydro_rules.yaml", assume_tz="UTC")
+result = tsqc.check(df, rules=os.path.join(HERE, "hydro_rules.yaml"), assume_tz="UTC")
 print(result)
 
 summary = result.summary()
