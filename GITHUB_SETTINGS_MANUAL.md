@@ -66,7 +66,7 @@ https://nagusubra.github.io/timeseries-qc/
 
 **Location:** Repository homepage → Settings → Social preview → Upload
 
-**File:** `docs/assets/images/social-preview.png` (needs to be created - see instructions below)
+**File:** `docs/assets/images/social-preview.png` (created in-repo — upload via GitHub Settings → Social preview)
 
 **Specs:**
 - Dimensions: 1200x630 pixels
@@ -81,11 +81,12 @@ https://nagusubra.github.io/timeseries-qc/
 - GitHub stars badge
 - Install command: `pip install timeseries-qc`
 
-**Colors to use:**
-- Primary: #2563eb (blue)
-- Good: #10b981 (green)
-- Suspect: #f59e0b (yellow)
-- Bad: #ef4444 (red)
+**Colors to use (library design tokens):**
+- Primary: #2563eb (logo / brand blue)
+- Good: #16a34a (docs CSS `--qc-good`)
+- Suspect: #ca8a04 (docs CSS `--qc-sus`)
+- Bad: #dc2626 (docs CSS `--qc-bad`)
+- Chart segments: #008000 / #FFFF00 / #FF0000 (Plotly timeline)
 
 **Why:** Social preview images increase click-through rates by 5x on Twitter, LinkedIn, Slack, Discord.
 
@@ -168,8 +169,8 @@ After making these changes:
 ## Status
 
 - [x] Issue templates created (.github/ISSUE_TEMPLATE/)
-- [ ] Topics added (manual - see instructions above)
+- [ ] Topics added (manual - see instructions above; `gh` may 404 without admin access)
 - [ ] Description updated (manual - see instructions above)
 - [ ] Homepage URL set (manual - see instructions above)
-- [ ] Social preview image uploaded (manual - needs image creation)
+- [x] Social preview image redesigned at `docs/assets/images/social-preview.png` (1200x630; still needs manual upload in GitHub UI)
 - [ ] GitHub Discussions enabled (manual - see instructions above)

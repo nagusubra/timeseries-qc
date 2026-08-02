@@ -1,15 +1,20 @@
 ---
 title: User Guide — timeseries-qc Walkthrough
 description: Complete walkthrough of timeseries-qc with loading data, running checks, interpreting results, and generating reports.
+og_title: User Guide — timeseries-qc Walkthrough
+og_description: Complete walkthrough of timeseries-qc with loading data, running checks, interpreting results, and generating reports.
 ---
 
 # User Guide
 
+!!! abstract "TL;DR"
+    Load a DataFrame with `timestamp` and `value` columns, call `tsqc.check(df, assume_tz="UTC")`, then use `summary()`, `plot()`, and `export_report()` to inspect and share results.
+
 A comprehensive walkthrough of the `timeseries-qc` library.
 
-## Loading Data
+## How do I load data?
 
-`timeseries-qc` works with any pandas DataFrame containing the following columns:
+`timeseries-qc` works with any pandas DataFrame that has a `timestamp` column, a numeric `value` column, and an optional `tag_name` for multi-sensor data.
 
 | Column | Required | Description |
 |--------|----------|-------------|
@@ -37,7 +42,9 @@ Omit the `tag_name` column or pass `tag_col=None`:
 result = tsqc.check(df, tag_col=None, assume_tz="UTC")
 ```
 
-## Running Quality Checks
+## How do I run quality checks?
+
+Call `tsqc.check()` with your DataFrame and `assume_tz` for tz-naive data. You can use auto-configured defaults, a YAML rules file, or a programmatic list of rule objects.
 
 ### Auto-Configured Defaults
 
@@ -67,9 +74,9 @@ rules = [
 result = tsqc.check(df, rules=rules, assume_tz="UTC")
 ```
 
-## Timezone Handling
+## How does timezone handling work?
 
-`timeseries-qc` automatically preserves the timezone of your input data through the entire pipeline:
+`timeseries-qc` preserves your input timezone end-to-end: pass `assume_tz` for tz-naive data, or rely on detected tz-aware timestamps.
 
 - **Tz-naive input:** Pass `assume_tz="America/Edmonton"` (or your source timezone). The library normalises to UTC internally for consistent rule evaluation, then converts all output back to your source timezone.
 - **Tz-aware input:** Your existing timezone is detected and used automatically. `assume_tz` is optional.
@@ -81,7 +88,9 @@ result = tsqc.check(df, assume_tz="America/Edmonton")
 print(result.display_tz)  # "America/Edmonton"
 ```
 
-## Interpreting Results
+## How do I interpret results?
+
+Every row is classified as `good`, `sus`, or `bad`, with worst-wins when multiple rules fire. Use `summary()` and `issue_summary()` for per-tag and per-issue views.
 
 ### Quality Classification
 
@@ -109,9 +118,9 @@ result.issue_summary()
 
 Lists contiguous segments of non-good quality with start/end timestamps, row counts, durations, and the rule names that triggered the issue.
 
-### Using an External Quality Column
+## How do I use an external quality column?
 
-If your data already has a quality/status column from a SCADA historian (e.g. OSIsoft PI quality codes, OPC UA status), you can use it directly instead of or alongside the internal rules.
+If your data already has a historian status column, pass `external_quality_col` with `quality_mode` set to `exclusive`, `combined`, or `none`, plus a `quality_map`.
 
 ### Exclusive Mode — External Quality Only
 
@@ -179,21 +188,45 @@ default_rules:
 
 YAML `quality_map` takes precedence over the `quality_map=` function parameter when both are provided.
 
-## Timestamp Health
+## How do I check timestamp health?
+
+Call `result.check_timestamps()` to detect gaps, duplicates, non-monotonic timestamps, frequency drift, and DST ambiguities.
 
 ```python
 result.check_timestamps()
 ```
 
-Detects gaps, duplicates, non-monotonic timestamps, frequency drift, and DST ambiguities.
+## How do I generate reports?
 
-## Generating Reports
+Call `result.export_report("quality_report.html")` for a self-contained HTML report with the timeline chart, summary tables, and timestamp health.
 
 ```python
 result.export_report("quality_report.html")
 ```
 
 Produces a self-contained HTML report with the timeline chart, summary tables, and timestamp health — no internet connection required.
+
+## FAQ
+
+### Do I always need `assume_tz`?
+
+For tz-naive data (typical CSV loads), yes — pass an IANA zone such as `"UTC"` or `"America/Edmonton"`. Tz-aware timestamps do not require it.
+
+### What columns does `tsqc.check()` expect?
+
+`timestamp` and `value` are required. `tag_name` is optional for multi-tag data; use `tag_col=None` for single-tag DataFrames.
+
+### What does worst-wins mean?
+
+When multiple rules flag the same row, the worse level is kept: **bad > sus > good**.
+
+### What happens to unmapped external quality values?
+
+They become `bad` with reason `source_data_quality: <value>`.
+
+### Can I use YAML and Python rules together?
+
+Pass either a YAML path (`rules="file.yaml"`) or a list of rule objects — not both as mixed sources in one call. Prefer YAML for reusable configs; use Python objects for programmatic control.
 
 ## Next Steps
 

@@ -1,13 +1,18 @@
 # timeseries-qc
 
 [![PyPI](https://img.shields.io/pypi/v/timeseries-qc)](https://pypi.org/project/timeseries-qc/)
+[![Python](https://img.shields.io/pypi/pyversions/timeseries-qc)](https://pypi.org/project/timeseries-qc/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/nagusubra/timeseries-qc?style=social)](https://github.com/nagusubra/timeseries-qc)
+[![Docs](https://img.shields.io/badge/docs-nagusubra.github.io-blue)](https://nagusubra.github.io/timeseries-qc/)
 
 **The open source data quality-control layer for SCADA, DCS, IoT, and historian timeseries data.**
 
+**Documentation:** https://nagusubra.github.io/timeseries-qc/
+
 Add `good / sus / bad` quality labels to every row of a pandas DataFrame in five lines. Then render a multi-tag horizontal status timeline, the chart that no other open-source library produces.
 
-A simple to digest and understand timeseries data quality check. Catch the issues in your process data before it affects your downstream analytics and business decisions. Build data quality checks based on business rules and monitor through interactive graph  components. 
+A simple, easy-to-digest timeseries data quality check. Catch issues in your process data before they affect downstream analytics and business decisions. Build data quality checks based on business rules and monitor them through interactive graph components. 
 
 **Sample Input - Solar farm SCADA data:**
 
@@ -128,8 +133,6 @@ result.issue_summary()     # DataFrame: per-issue runs (start, end, rows, durati
 result.check_timestamps()  # DataFrame: gap/duplicate/non_monotonic issues
 result.export_report("report.html")  # Full HTML with chart + all tables
 ```
-
----
 
 ---
 

@@ -101,6 +101,25 @@ def _build_default_rules(series: pd.Series) -> list[Rule]:
     ]
 
 
+_LEVEL_LABELS = np.array(["good", "sus", "bad"], dtype=object)
+
+
+def _join_reason_arrays(reason_arrays: list[np.ndarray], n: int) -> np.ndarray:
+    """Pipe-join per-rule reason arrays in rule order (output-identical to prior loop)."""
+    reasons = np.full(n, "", dtype=object)
+    for arr in reason_arrays:
+        nonempty = arr != ""
+        if not nonempty.any():
+            continue
+        both = nonempty & (reasons != "")
+        only_new = nonempty & ~both
+        if both.any():
+            for i in np.flatnonzero(both):
+                reasons[i] = f"{reasons[i]}|{arr[i]}"
+        reasons[only_new] = arr[only_new]
+    return reasons
+
+
 def _apply_rules_to_tag(
     tag_series: pd.Series,
     rules: list[Rule],
@@ -112,32 +131,27 @@ def _apply_rules_to_tag(
         reasons: str Series with pipe-delimited triggered rule names
         Both Series carry the same index as tag_series.
 
-    Uses vectorised numpy operations so performance scales to hundreds of
-    thousands of rows without Python-loop overhead.
+    Uses int8 level codes with ``np.maximum`` for worst-wins merging and
+    vectorised reason arrays (falling back to per-rule ``get_reasons_vectorized``).
     """
     n = len(tag_series)
-    quality = np.full(n, "good", dtype=object)
-    reasons: list[str] = [""] * n
+    codes = np.zeros(n, dtype=np.int8)  # 0=good, 1=sus, 2=bad
+    reason_arrays: list[np.ndarray] = []
 
     for rule in rules:
-        flagged_np = rule.check(tag_series).to_numpy().astype(bool)
-        flagged_positions = flagged_np.nonzero()[0]
-        if len(flagged_positions) == 0:
+        flagged_np = np.asarray(rule.check(tag_series), dtype=bool)
+        if not flagged_np.any():
             continue
 
-        # Append rule reason to reasons for each flagged row
-        for pos in flagged_positions:
-            reason = rule.get_reason(tag_series, pos)
-            reasons[pos] = f"{reasons[pos]}|{reason}" if reasons[pos] else reason
+        level_code = np.int8(_LEVEL_ORDER[rule.level])
+        np.maximum(codes, level_code, out=codes, where=flagged_np)
+        reason_arrays.append(rule.get_reasons_vectorized(tag_series, flagged_np))
 
-        # Update quality level (bad > sus > good)
-        if rule.level == "bad":
-            quality[flagged_np] = "bad"
-        elif rule.level == "sus":
-            quality[flagged_np & (quality == "good")] = "sus"
+    quality = _LEVEL_LABELS[codes]
+    reasons = _join_reason_arrays(reason_arrays, n) if reason_arrays else np.full(n, "", dtype=object)
 
     return (
-        pd.Series(quality.tolist(), index=tag_series.index, dtype=str),
+        pd.Series(quality, index=tag_series.index, dtype=str),
         pd.Series(reasons, index=tag_series.index, dtype=str),
     )
 
@@ -164,19 +178,17 @@ def _apply_external_quality_map(
         reasons: str Series with "source_data_quality: <raw_value>" for non-good rows
     """
     mapped = ext_raw.map(quality_map).fillna("bad")
-
+    levels = mapped.to_numpy(dtype=object)
     raw_vals = ext_raw.to_numpy()
-    levels = mapped.to_numpy()
-    reasons_list: list[str] = []
-    for i, level in enumerate(levels):
-        if level != "good":
-            reasons_list.append(f"source_data_quality: {raw_vals[i]}")
-        else:
-            reasons_list.append("")
+
+    reasons = np.full(len(levels), "", dtype=object)
+    bad_mask = levels != "good"
+    if bad_mask.any():
+        reasons[bad_mask] = [f"source_data_quality: {v}" for v in raw_vals[bad_mask]]
 
     return (
         pd.Series(levels, index=ext_raw.index, dtype=str),
-        pd.Series(reasons_list, index=ext_raw.index, dtype=str),
+        pd.Series(reasons, index=ext_raw.index, dtype=str),
     )
 
 
@@ -191,30 +203,31 @@ def _merge_external_internal(
     bad > sus > good — the worse level across both sources wins.
     When external is worse, its reason is appended (pipe-delimited) to
     the existing internal reason string.
+
+    Unmapped external levels default to bad (2); unmapped internal to good (0).
     """
-    level_order = {"good": 0, "sus": 1, "bad": 2}
+    int_codes = internal_q.map(_LEVEL_ORDER).fillna(0).to_numpy(dtype=np.int8)
+    ext_codes = external_q.map(_LEVEL_ORDER).fillna(2).to_numpy(dtype=np.int8)
 
-    merged_q = internal_q.copy()
-    merged_r = internal_r.copy()
+    use_ext = ext_codes > int_codes
+    merged_codes = np.maximum(int_codes, ext_codes)
+    merged_q = pd.Series(_LEVEL_LABELS[merged_codes], index=internal_q.index, dtype=str)
 
-    for i in range(len(external_q)):
-        ext_level = external_q.iloc[i]
-        int_level = internal_q.iloc[i]
+    int_r = internal_r.to_numpy(dtype=object)
+    ext_r = external_r.to_numpy(dtype=object)
+    merged_r = int_r.copy()
 
-        ext_val = level_order.get(ext_level, 2)
-        int_val = level_order.get(int_level, 0)
-
-        if ext_val > int_val:
-            merged_q.iloc[i] = ext_level
-            ext_reason = external_r.iloc[i]
+    if use_ext.any():
+        for i in np.flatnonzero(use_ext):
+            ext_reason = ext_r[i]
             if ext_reason:
-                int_reason = internal_r.iloc[i]
+                int_reason = int_r[i]
                 if int_reason:
-                    merged_r.iloc[i] = f"{int_reason}|{ext_reason}"
+                    merged_r[i] = f"{int_reason}|{ext_reason}"
                 else:
-                    merged_r.iloc[i] = ext_reason
+                    merged_r[i] = ext_reason
 
-    return merged_q, merged_r
+    return merged_q, pd.Series(merged_r, index=internal_r.index, dtype=str)
 
 
 # --------------------------------------------------------------------------- #
@@ -324,6 +337,7 @@ def check(
 
     # --- Work on a copy ---
     out = df.copy()
+    original_row_order = out.index
 
     # --- Normalize timestamps ---
     ts_col, ambiguous_ts, display_tz = _normalize_timestamps(out[time_col], time_col, assume_tz)
@@ -331,13 +345,10 @@ def check(
 
     # --- Determine tags ---
     if tag_col is None or tag_col not in out.columns:
-        out = out.copy()
         out["_tag_internal"] = "default"
         _tag_col = "_tag_internal"
     else:
         _tag_col = tag_col
-
-    tags = out[_tag_col].unique()
 
     quality_parts = []
     reasons_parts = []
@@ -350,18 +361,18 @@ def check(
         and resolved_quality_map is not None
     )
 
-    for tag in tags:
-        mask = out[_tag_col] == tag
-        tag_df = out.loc[mask].copy()
+    # Sort once globally so each tag group is a contiguous, time-ordered slice.
+    out = out.sort_values([_tag_col, time_col], kind="mergesort")
+
+    for tag, tag_df in out.groupby(_tag_col, sort=False):
         original_idx = tag_df.index
 
-        # Sort by time and drop NaT rows before rules processing.
+        # Drop NaT rows before rules processing.
         # NaT rows (from DST ambiguity) are "bad" by default; rolling requires
         # a monotonic, NaT-free DatetimeIndex.
-        tag_df_sorted = tag_df.sort_values(time_col)
-        nat_time_mask = tag_df_sorted[time_col].isna()
-        valid_df = tag_df_sorted[~nat_time_mask]
-        nat_df = tag_df_sorted[nat_time_mask]
+        nat_time_mask = tag_df[time_col].isna()
+        valid_df = tag_df.loc[~nat_time_mask]
+        nat_df = tag_df.loc[nat_time_mask]
 
         valid_idx = valid_df.index
         valid_df_indexed = valid_df.set_index(time_col)
@@ -372,7 +383,7 @@ def check(
             if yaml_rules is not None:
                 from tsqc.config.yaml_parser import get_rules_for_tag
 
-                tag_rules = get_rules_for_tag(yaml_rules, tag)
+                tag_rules = get_rules_for_tag(yaml_rules, str(tag))
                 if not tag_rules:
                     tag_rules = _build_default_rules(tag_series)
             elif rules is not None:
@@ -412,7 +423,7 @@ def check(
             q = pd.concat([q, nat_q])
             r = pd.concat([r, nat_r])
 
-        # Restore original (unsorted) order
+        # Restore this tag's original (pre-sort) row order within the tag slice
         q = q.reindex(original_idx)
         r = r.reindex(original_idx)
 
@@ -446,6 +457,9 @@ def check(
         out = out.rename(columns={_output_qc: new_qc, _output_rc: new_rc})
         quality_col = new_qc
         reasons_col = new_rc
+
+    # Restore the caller's original row order (we sorted by tag/time above).
+    out = out.reindex(original_row_order)
 
     # Convert timestamps back to the display timezone so the user sees
     # their original local timestamps in result.df, plot(), etc.

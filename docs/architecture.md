@@ -1,11 +1,18 @@
 ---
 title: Architecture — timeseries-qc Internal Design
 description: How timeseries-qc is structured internally — package organization, data flow, rule execution pipeline, and design decisions.
+og_title: Architecture — timeseries-qc Internal Design
+og_description: How timeseries-qc is structured internally — package organization, data flow, rule execution pipeline, and design decisions.
 ---
 
 # Architecture
 
-## Package Structure
+!!! abstract "TL;DR"
+    `tsqc.check()` validates input, resolves rules (YAML, list, or defaults), applies them per tag with vectorized operations, and returns a `QCResult` with summary, plot, timestamp, and report methods. Design favors pandas-native, offline-first workflows.
+
+## How is the package organized?
+
+Public entry points live in `tsqc/__init__.py`; checking, results, YAML parsing, rules, timestamp health, and viz are separate modules.
 
 ```
 tsqc/
@@ -18,7 +25,7 @@ tsqc/
 
   rules/
     base.py           # Abstract Rule base class
-    builtins.py       # NullRule, FlatlineRule, DeltaRule, RangeRule, CustomRule
+    builtins.py       # NullRule, FlatlineRule, DeltaRule, RangeRule, OutlierRule, CustomRule
 
   time_health/
     checker.py        # Timestamp validation (gaps, duplicates, drift, DST)
@@ -28,7 +35,9 @@ tsqc/
     timeline.py       # Plotly Gantt-style timeline figure builder
 ```
 
-## Data Flow
+## How does data flow through a check?
+
+Input DataFrame → validation/UTC normalize → rule resolution → per-tag vectorized rules → quality columns → `QCResult`.
 
 1. **Input**: User provides a pandas DataFrame with timestamp, tag_name, and value columns
 2. **Validation**: Column presence is checked, timestamps are normalized to UTC
@@ -37,7 +46,9 @@ tsqc/
 5. **Quality Assignment**: Each row gets quality (good/sus/bad) and quality_reasons columns
 6. **QCResult**: Returned with the annotated DataFrame and downstream methods
 
-## Design Decisions
+## Why were these design decisions made?
+
+The library prioritizes pandas integration, vectorized performance, three-level quality, worst-wins severity, and offline HTML reports.
 
 ### Pandas-Native
 
@@ -58,6 +69,28 @@ When multiple rules fire for the same row, the worst classification wins. This e
 ### Offline-First
 
 The HTML report export embeds all JavaScript and styling, making it viewable without internet access.
+
+## FAQ
+
+### Where is the public API defined?
+
+`tsqc/__init__.py` exports `check()`, `QCResult`, and the rule classes.
+
+### Where do YAML rules get parsed?
+
+In `tsqc/config/yaml_parser.py`, which turns YAML into Rule objects.
+
+### Why three quality levels instead of pass/fail?
+
+`good` / `sus` / `bad` separates confirmed failures from values that need review, which is more useful for industrial sensor data.
+
+### What does worst-wins mean in the pipeline?
+
+If multiple rules flag a row, the worse level is kept (**bad > sus > good**).
+
+### Are HTML reports offline-capable by design?
+
+Yes. `export_report()` embeds Plotly JS and styles so reports work without a network.
 
 ## Next Steps
 

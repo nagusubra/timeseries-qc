@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CHANGELOG.md with explicit semantic versioning convention
 
+## [0.4.2] - 2026-07-07
+
+### Added
+- FlatlineRule includes stuck value in reason strings (`flatline @ 42.5000`)
+- `Rule.get_reason(series, idx)` extensibility hook for contextual reason strings
+
+### Changed
+- External quality reason prefix renamed from `external_quality_value:` to `source_data_quality:`
+- Timeline hover tooltip label updated from `Cause:` to `Reason:`
+
 ## [0.4.1] - 2026-07-04
 
 ### Added

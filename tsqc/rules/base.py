@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 
+import numpy as np
 import pandas as pd
 
 
@@ -48,6 +49,18 @@ class Rule(ABC):
             Reason string to be added to the quality_reasons column.
         """
         return self.name
+
+    def get_reasons_vectorized(self, series: pd.Series, mask: np.ndarray) -> np.ndarray:
+        """Return an object array of reason strings aligned with *series*.
+
+        Entries are the rule reason where *mask* is True, otherwise ``""``.
+        Override for rules whose reason depends on the row value. The default
+        fills ``self.name`` for every flagged position (matches ``get_reason``).
+        """
+        out = np.full(len(series), "", dtype=object)
+        if mask.any():
+            out[mask] = self.name
+        return out
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(level={self.level!r})"

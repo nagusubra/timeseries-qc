@@ -1,19 +1,24 @@
 ---
 title: Rule Engine — timeseries-qc
 description: How the timeseries-qc rule engine works — five built-in rules (NullRule, FlatlineRule, DeltaRule, RangeRule, OutlierRule with zscore/mad/iqr), custom rules, rule ordering, and severity levels.
+og_title: Rule Engine — timeseries-qc
+og_description: How the timeseries-qc rule engine works — five built-in rules, custom rules, rule ordering, and severity levels.
 ---
 
 # Rule Engine
 
+!!! abstract "TL;DR"
+    Rules evaluate each tag's values and flag rows as `sus` or `bad`. Five built-ins cover nulls, flatlines, deltas, ranges, and outliers; use `CustomRule` for anything else. Worst level wins when multiple rules fire.
+
 The rule engine is the core of `timeseries-qc`. Rules define what constitutes bad or suspect data.
 
-## How Rules Work
+## How do rules work?
 
-Each rule is a class that evaluates a pandas Series of values and returns a boolean Series indicating which rows are flagged.
+Each rule evaluates a pandas Series of values and returns a boolean Series of flagged rows. Rules are applied **per tag** in order. When multiple rules fire for the same row, the worst quality level wins: **bad > sus > good**.
 
-Rules are applied **per tag** in order. When multiple rules fire for the same row, the worst quality level wins: **bad > sus > good**.
+## What built-in rules are available?
 
-## Built-in Rules
+`timeseries-qc` ships five built-ins: `NullRule`, `FlatlineRule`, `DeltaRule`, `RangeRule`, and `OutlierRule`.
 
 ### NullRule
 
@@ -129,9 +134,9 @@ Supports both **global** (full-series) and **rolling** (time-windowed) computati
     level: bad
   ```
 
-## Rule Ordering
+## How does rule ordering work?
 
-Rules are applied in the order they are defined. For each row:
+Rules run in definition order. Each row starts as `good`; later rules can escalate quality to `sus` or `bad`, and triggered rule names are appended to `quality_reasons`.
 
 1. Start with quality = "good"
 2. For each rule, if the rule fires:
@@ -139,14 +144,16 @@ Rules are applied in the order they are defined. For each row:
    - If rule level is "sus" and quality is "good" → quality = "sus"
 3. The triggered rule names are appended to `quality_reasons`
 
-## Severity Levels
+## What are severity levels?
+
+`bad` means exclude from analysis; `sus` means investigate. There is no separate "warning" level beyond these two non-good classifications.
 
 - **bad** — data should be excluded from analysis
 - **sus** — data may be unreliable and warrants investigation
 
-## Custom Rules
+## How do I create custom rules?
 
-You can create custom rules using the `CustomRule` class:
+Use `CustomRule` with a function that takes a Series and returns a boolean mask of flagged rows.
 
 ```python
 from tsqc import CustomRule
@@ -157,15 +164,37 @@ def check_negative(series):
 rule = CustomRule(fn=check_negative, name="negative", level="bad")
 ```
 
-## Default Rules
+## What are the default rules?
 
-When no rules are provided, `timeseries-qc` auto-configures rules using 3-sigma delta thresholding:
+When no rules are provided, `timeseries-qc` auto-configures null, flatline, and 3-sigma delta rules:
 
 ```python
 NullRule(level="bad")
 FlatlineRule(window="1h", min_delta=0.0, level="sus")
 DeltaRule(max_delta=3 * std, level="sus")
 ```
+
+## FAQ
+
+### Do tag rules replace default rules?
+
+No. Tag rules **add** to `default_rules`; they do not replace them.
+
+### Can one row have multiple reasons?
+
+Yes. Triggered rule names are collected in `quality_reasons` (pipe-delimited when both external and internal reasons apply).
+
+### Which outlier method should I pick?
+
+Use `zscore` for roughly normal data, `mad` when the baseline has spikes, and `iqr` for skewed distributions.
+
+### Does FlatlineRule use wall-clock or UTC time?
+
+`window` is measured in **elapsed UTC time**. Timestamps are normalised to UTC before evaluation.
+
+### How do I suppress short flat periods?
+
+Pass `min_duration` on `FlatlineRule` (e.g. `min_duration: 30min`) so short flat runs are not flagged.
 
 ## Next Steps
 

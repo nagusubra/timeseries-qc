@@ -82,7 +82,7 @@ class TestEncodeQualityRuns:
         df = pd.DataFrame(columns=["timestamp", "tag_name", "quality"])
         segs = encode_quality_runs(df)
         assert segs.empty
-        assert list(segs.columns) == ["tag_name", "quality", "start", "end", "duration_seconds"]
+        assert list(segs.columns) == ["tag_name", "quality", "start", "end", "duration_seconds", "n_rows"]
 
     def test_single_row_df(self):
         df = _seg_df([("2026-01-01 00:00", "T", "good")])
@@ -111,7 +111,7 @@ class TestEncodeQualityRuns:
         df = pd.DataFrame(columns=["timestamp", "tag_name", "quality", "quality_reasons"])
         segs = encode_quality_runs(df, reasons_col="quality_reasons")
         assert segs.empty
-        assert list(segs.columns) == ["tag_name", "quality", "start", "end", "duration_seconds", "reasons"]
+        assert list(segs.columns) == ["tag_name", "quality", "start", "end", "duration_seconds", "n_rows", "reasons"]
 
     def test_rle_reasons_column_missing_no_crash(self):
         df = _seg_df([("2026-01-01 00:00", "T", "good")])

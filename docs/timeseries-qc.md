@@ -5,7 +5,7 @@ description: Skill file for AI coding agents to use the timeseries-qc library fo
 
 # timeseries-qc — AI Agent Skill File
 
-Quick reference for AI coding agents to correctly use the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.4.1).
+Quick reference for AI coding agents to correctly use the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.4.2).
 
 **Library purpose:** Classify time series data rows as `good` / `sus` / `bad` using business rules, with a multi-tag horizontal timeline chart.
 
@@ -147,6 +147,10 @@ result = tsqc.check(
 | `exclusive` | External quality **only**; no internal rules run |
 | `combined` | External + internal merged (worst-wins: bad > sus > good) |
 | `none` | Internal only; ignores external column |
+
+- Unmapped quality values become `bad` with reason `source_data_quality: <raw_value>`
+- Column conflict (input col matches output col name) → auto-renamed to `qc_quality` / `qc_quality_reasons`
+- `quality_map` in YAML takes precedence over the `quality_map=` parameter
 
 ## Custom Rules (Python)
 

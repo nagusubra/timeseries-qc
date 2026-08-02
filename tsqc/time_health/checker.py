@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 
 if TYPE_CHECKING:
@@ -40,22 +41,24 @@ def _check_single_tag(
     issues: list[dict] = []
 
     # --- Non-monotonic (check in original order, before sorting) ---
-    ts_original = ts.reset_index(drop=True)
-    for i in range(1, len(ts_original)):
-        if pd.notna(ts_original.iloc[i]) and pd.notna(ts_original.iloc[i - 1]):
-            if ts_original.iloc[i] < ts_original.iloc[i - 1]:
-                issues.append(
-                    {
-                        "tag_name": tag,
-                        "issue_type": "non_monotonic",
-                        "timestamp": ts_original.iloc[i],
-                        "description": (
-                            f"Non-monotonic: {ts_original.iloc[i]} < preceding "
-                            f"{ts_original.iloc[i - 1]}"
-                        ),
-                        "severity": "error",
-                    }
-                )
+    ts_vals = ts.to_numpy()
+    if len(ts_vals) > 1:
+        prev = ts_vals[:-1]
+        curr = ts_vals[1:]
+        both_valid = pd.notna(prev) & pd.notna(curr)
+        decreased = both_valid & (curr < prev)
+        for i in np.flatnonzero(decreased):
+            issues.append(
+                {
+                    "tag_name": tag,
+                    "issue_type": "non_monotonic",
+                    "timestamp": curr[i],
+                    "description": (
+                        f"Non-monotonic: {curr[i]} < preceding {prev[i]}"
+                    ),
+                    "severity": "error",
+                }
+            )
 
     # Sort for the remaining checks
     ts_sorted = ts.sort_values().reset_index(drop=True)
@@ -82,25 +85,26 @@ def _check_single_tag(
     # --- Gaps ---
     if eff_freq is not None and len(ts_unique) > 1:
         gap_threshold = 2 * eff_freq
-        diffs = ts_unique.diff().dropna()
-        for i, diff in enumerate(diffs):
-            if diff > gap_threshold:
-                gap_start = ts_unique.iloc[i]
-                gap_end = ts_unique.iloc[i + 1]
-                duration = diff
-                severity = "error" if duration >= pd.Timedelta("1h") else "warning"
-                issues.append(
-                    {
-                        "tag_name": tag,
-                        "issue_type": "gap",
-                        "timestamp": gap_start,
-                        "description": (
-                            f"Gap of {duration} between {gap_start} and {gap_end} "
-                            f"(expected ≤ {gap_threshold})"
-                        ),
-                        "severity": severity,
-                    }
-                )
+        diffs = ts_unique.diff()
+        gap_positions = np.flatnonzero((diffs > gap_threshold).fillna(False).to_numpy())
+        for i in gap_positions:
+            # diffs[i] is the gap between ts_unique[i-1] and ts_unique[i]
+            gap_start = ts_unique.iloc[i - 1]
+            gap_end = ts_unique.iloc[i]
+            duration = diffs.iloc[i]
+            severity = "error" if duration >= pd.Timedelta("1h") else "warning"
+            issues.append(
+                {
+                    "tag_name": tag,
+                    "issue_type": "gap",
+                    "timestamp": gap_start,
+                    "description": (
+                        f"Gap of {duration} between {gap_start} and {gap_end} "
+                        f"(expected ≤ {gap_threshold})"
+                    ),
+                    "severity": severity,
+                }
+            )
 
     # --- Freq drift ---
     if eff_freq is not None and len(ts_unique) > 10:

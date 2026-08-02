@@ -58,7 +58,15 @@ def build_timeline_figure(
     if summary is not None and not summary.empty:
         tag_order = list(summary.sort_values("pct_bad", ascending=False)["tag_name"])
     else:
-        tag_order = list(segments["tag_name"].unique())
+        # Derive ordering from segment quality severity without a full summary pass
+        severity = {"bad": 2, "sus": 1, "good": 0}
+        worst = (
+            segments.assign(_sev=segments["quality"].map(severity))
+            .groupby("tag_name")["_sev"]
+            .max()
+            .sort_values(ascending=False)
+        )
+        tag_order = list(worst.index)
 
     present_tags = set(segments["tag_name"].unique())
     tag_order = [t for t in tag_order if t in present_tags]
@@ -68,7 +76,7 @@ def build_timeline_figure(
 
     # Build hover text
     segments = segments.copy()
-    segments["duration_str"] = segments["duration_seconds"].apply(_human_duration)
+    segments["duration_str"] = segments["duration_seconds"].map(_human_duration)
     segments["hover"] = (
         "<b>" + segments["tag_name"].astype(str) + "</b><br>"
         + "Quality: " + segments["quality"].astype(str) + "<br>"
@@ -79,41 +87,42 @@ def build_timeline_figure(
 
     # Append "Reason: ..." for non-good segments that have reasons
     if "reasons" in segments.columns:
-        cause_mask = segments["reasons"].str.len() > 0
-        segments.loc[cause_mask, "hover"] += "<br>Reason: " + segments.loc[cause_mask, "reasons"]
+        cause_mask = segments["reasons"].astype(str).str.len() > 0
+        segments.loc[cause_mask, "hover"] = (
+            segments.loc[cause_mask, "hover"]
+            + "<br>Reason: "
+            + segments.loc[cause_mask, "reasons"].astype(str)
+        )
 
     fig = go.Figure()
 
-    # One group of traces per quality level — produces exactly 3 legend items.
-    # showlegend=True only for the first trace in each group; all others share
-    # the same legendgroup so clicking the legend item toggles all of them.
+    # One trace per quality level with array-valued x/base (not one trace per segment).
     for quality_level in _QUALITY_ORDER:
         sub = segments[segments["quality"] == quality_level]
         if sub.empty:
             continue
 
         color = _COLOR_MAP[quality_level]
-        first_in_group = True
+        duration_ms = (
+            (sub["end"] - sub["start"]).dt.total_seconds() * 1000
+        ).astype(int).tolist()
+        bases = [ts.isoformat() for ts in sub["start"]]
 
-        for _, seg_row in sub.iterrows():
-            duration_ms = int((seg_row["end"] - seg_row["start"]).total_seconds() * 1000)
-            base_ts = seg_row["start"].isoformat()
-            fig.add_trace(go.Bar(
-                x=[duration_ms],
-                y=[seg_row["tag_name"]],
-                base=[base_ts],
-                orientation="h",
-                marker_color=color,
-                hovertext=seg_row["hover"],
-                hoverinfo="text",
-                name=quality_level,
-                legendgroup=quality_level,
-                showlegend=first_in_group,
-                opacity=0.85,
-                width=0.5,
-                offsetgroup=quality_level,
-            ))
-            first_in_group = False
+        fig.add_trace(go.Bar(
+            x=duration_ms,
+            y=sub["tag_name"].astype(str).tolist(),
+            base=bases,
+            orientation="h",
+            marker_color=color,
+            hovertext=sub["hover"].tolist(),
+            hoverinfo="text",
+            name=quality_level,
+            legendgroup=quality_level,
+            showlegend=True,
+            opacity=0.85,
+            width=0.5,
+            offsetgroup=quality_level,
+        ))
 
     fig.update_layout(
         title=title,

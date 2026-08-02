@@ -25,14 +25,19 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - name: Install dependencies
+      - name: Install Cairo (social cards)
         run: |
-          pip install \
-            "mkdocs-material[imaging]" \
-            mkdocs-git-revision-date-localized-plugin \
-            mkdocs-minify-plugin
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libzlib1g-dev
+      - name: Install dependencies
+        run: pip install -r docs-requirements.txt
+      - name: Generate FAQ schema
+        run: python scripts/generate_faq_schema.py
       - name: Build site
-        run: mkdocs build
+        env:
+          DISABLE_MKDOCS_2_WARNING: "true"
+          CI: "true"
+        run: mkdocs build --strict
       - name: Create .nojekyll
         run: touch site/.nojekyll
       - name: Upload artifact
