@@ -124,7 +124,8 @@ angle_df = pd.concat(
 # ── Combine and save ─────────────────────────────────────────────────────────
 combined = pd.concat([inv_df, met_df, angle_df], ignore_index=True)
 
-out_path = os.path.join(os.path.dirname(__file__), "solar_farm_scada.csv")
+out_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "solar_farm_scada.csv")
+os.makedirs(os.path.dirname(out_path), exist_ok=True)
 combined.to_csv(out_path, index=False)
 
 print(f"Written {len(combined):,} rows -> {out_path}")

@@ -7,6 +7,14 @@ description: Version history and release notes for the timeseries-qc library.
 
 ## Unreleased
 
+## 0.5.0 — 2026-08-02
+
+### Cleanup
+
+- **Dead Code Removed**: Deleted unused `_VALID_LEVELS` constant in `tsqc/checker.py`, removed redundant inner `import warnings as _warnings` in `_normalize_timestamps`, and dropped unused `**kwargs` from `build_timeline_figure()` in `tsqc/viz/timeline.py`.
+- **Restored `data/` Directory**: Re-created `data/` at repo root for generated example datasets (git-ignored). All three generators now write CSVs there; notebooks and smoke test reference this location.
+- **Example Notebooks Fixed**: `examples/solar_farm.ipynb` and `examples/oilfield.ipynb` now work end-to-end — generator subprocess paths and YAML rules paths correctly point to `synthetic_data_generation/`.
+
 ### Infrastructure
 
 - **CI Least-Privilege Permissions**: Added explicit `contents: read` workflow permissions to `ci.yml`, resolving all CodeQL `actions/missing-workflow-permissions` alerts. (`#55`)

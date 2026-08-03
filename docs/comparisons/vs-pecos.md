@@ -6,7 +6,7 @@ description: Compare timeseries-qc and Sandia Pecos for photovoltaic and industr
 # timeseries-qc vs Pecos
 
 !!! abstract "TL;DR"
-    Use **timeseries-qc** for modern multi-tag good/sus/bad QC with YAML rules, Plotly timelines, and HTML reports (active MIT library, v0.4.2). Use **Pecos** if you already depend on its PV performance monitoring workflows; note that Pecos has been in maintenance mode since around 2021 and uses binary pass/fail style results.
+    Use **timeseries-qc** for modern multi-tag good/sus/bad QC with YAML rules, Plotly timelines, and HTML reports (active MIT library, v0.5.0). Use **Pecos** if you already depend on its PV performance monitoring workflows; note that Pecos has been in maintenance mode since around 2021 and uses binary pass/fail style results.
 
 ## What problem does each tool solve?
 
@@ -48,7 +48,7 @@ Pecos: reporting suited to its performance dashboards; no equivalent multi-tag g
 | YAML config | Yes | No |
 | Historian quality column | Yes | Limited / DIY |
 | Self-contained HTML QC report | Yes | Different reporting |
-| Maintenance status | Active (0.4.2) | Maintenance (since ~2021) |
+| Maintenance status | Active (0.5.0) | Maintenance (since ~2021) |
 | License | MIT | BSD-3-Clause |
 
 ## When should you use timeseries-qc?

@@ -1,6 +1,6 @@
 # timeseries-qc — Copilot Instructions
 
-This project uses [timeseries-qc](https://pypi.org/project/timeseries-qc/) (v0.4.2) for time series data quality control.
+This project uses [timeseries-qc](https://pypi.org/project/timeseries-qc/) (v0.5.0) for time series data quality control.
 
 ## One-Shot Pattern
 ```python

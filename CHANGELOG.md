@@ -6,12 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
-### Added
+## [0.5.0] - 2026-08-02
 
-- CHANGELOG.md with explicit semantic versioning convention
+### Changed
+- Removed dead code from the library (`_VALID_LEVELS` in checker.py, unused `**kwargs` in `build_timeline_figure`, redundant inner `import warnings` in `_normalize_timestamps`)
+- Restored `data/` directory at repo root for generated example datasets (git-ignored, reproducible)
+- Fixed example notebooks (`examples/solar_farm.ipynb`, `examples/oilfield.ipynb`) to work end-to-end — generator subprocess paths and rules paths now correctly point to `synthetic_data_generation/`
+- Generators (`generate_solar_data.py`, `generate_oilfield_data.py`, `generate_hydro_data.py`) now write CSVs to repo-root `data/` instead of next to the script
+- `smoke_test.py` path-anchored to repo root via `ROOT` variable
+- Updated all version references from 0.4.2 → 0.5.0 across docs, skills, and agent instructions
 
 ### Fixed
-
 - CI workflow now declares read-only `contents` permissions (CodeQL least-privilege)
 - Synthetic data generators no longer crash on Windows consoles (replaced unencodable `→` characters in output)
 - `synthetic_data_generation/smoke_test.py` resolves `hydro_rules.yaml` from its own directory instead of a non-existent `data/` path

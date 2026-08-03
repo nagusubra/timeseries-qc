@@ -192,7 +192,7 @@ Most requested features:
 2. ✅ **External quality column support** - Added in v0.4.0
 3. ✅ **Flatline value in reasons** - Added in v0.4.2
 4. 🔄 **CLI tool** - In progress
-5. 🔄 **Parquet file support** - Planned for v0.5.0
+5. 🔄 **Parquet file support** - Planned
 
 [**Vote on feature requests →**](https://github.com/nagusubra/timeseries-qc/discussions/categories/ideas)
 

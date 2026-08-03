@@ -356,6 +356,12 @@ tsqc/
 
 ## Changelog
 
+### 0.5.0 — 2026-08-02
+- Removed dead code from the library (`_VALID_LEVELS`, unused `**kwargs`, redundant import)
+- Restored `data/` directory for generated example datasets (git-ignored)
+- Fixed example notebooks (solar farm, oilfield) to run end-to-end against `synthetic_data_generation/`
+- Generators now write CSVs to repo-root `data/`; smoke test is path-anchored
+
 ### 0.4.2 — 2026-07-07
 - Flatline reasons include stuck value (`flatline @ 42.5000`)
 - External quality reason prefix renamed to `source_data_quality:`
@@ -444,7 +450,7 @@ Each use case has a synthetic data generator under `synthetic_data_generation/`.
 
 ---
 
-## Known Limitations (v0.4.2)
+## Known Limitations (v0.5.0)
 
 1. Pandas only (PySpark and Polars planned)
 2. No YAML override of default rules (tag rules add to defaults)

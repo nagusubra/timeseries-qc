@@ -151,7 +151,9 @@ def generate_inflow(ts: pd.DatetimeIndex, rng: np.random.Generator) -> np.ndarra
     return values
 
 
-def build_scada_csv(output_path: str = "data/hydro_plant_scada.csv") -> pd.DataFrame:
+def build_scada_csv(
+    output_path: str | None = None,
+) -> pd.DataFrame:
     """Build the full 4-tag long-format DataFrame and save to CSV."""
     rng = np.random.default_rng(2026)
 
@@ -209,6 +211,10 @@ def build_scada_csv(output_path: str = "data/hydro_plant_scada.csv") -> pd.DataF
 
     combined = pd.concat(dfs, ignore_index=True)
 
+    if output_path is None:
+        output_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "data", "hydro_plant_scada.csv"
+        )
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     combined.to_csv(output_path, index=False)
     print(f"Saved {len(combined):,} rows -> {output_path}")

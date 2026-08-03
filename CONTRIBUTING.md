@@ -32,11 +32,19 @@ mypy tsqc/
 
 Test data generators live in `synthetic_data_generation/`. These are standalone scripts
 that produce CSV files with engineered anomalies for testing the library. They are not
-shipped with the PyPI package.
+shipped with the PyPI package. Generated CSVs and HTML reports are written to `data/`
+(repo root), which is git-ignored.
 
 ```bash
-cd synthetic_data_generation
-python generate_solar_data.py
+python synthetic_data_generation/generate_solar_data.py
+python synthetic_data_generation/generate_oilfield_data.py
+python synthetic_data_generation/generate_hydro_data.py
+```
+
+Smoke test (runs the hydro rules against the generated hydro data):
+
+```bash
+python synthetic_data_generation/smoke_test.py
 ```
 
 ## Branch Protection

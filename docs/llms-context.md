@@ -14,7 +14,7 @@ This page provides structured context for AI coding agents (GitHub Copilot, Curs
 **timeseries-qc** is a Python library for quality control of time series data from SCADA, DCS, IoT, and historian systems.
 
 **PyPI:** `pip install timeseries-qc`  
-**Version:** 0.4.2 (July 2026)  
+**Version:** 0.5.0 (August 2026)  
 **License:** MIT  
 **GitHub:** https://github.com/nagusubra/timeseries-qc
 
@@ -469,7 +469,13 @@ When generating code using timeseries-qc, verify:
 
 ## Version-Specific Features
 
-### v0.4.2 (Current)
+### v0.5.0 (Current)
+- Removed dead code (`_VALID_LEVELS`, unused `**kwargs`, redundant import)
+- Restored `data/` directory for generated example datasets (git-ignored)
+- Example notebooks fixed to work end-to-end (solar farm, oilfield)
+- Full 0.5.0 release (see changelog)
+
+### v0.4.2
 - Flatline reasons include value: `"flatline @ 45.2000"`
 - External quality reasons use prefix: `"source_data_quality: <value>"`
 - Hover tooltip label: "Reason:"

@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 #  Helpers
 # --------------------------------------------------------------------------- #
 
-_VALID_LEVELS = {"sus", "bad"}
 _LEVEL_ORDER = {"good": 0, "sus": 1, "bad": 2}
 
 
@@ -44,8 +43,6 @@ def _normalize_timestamps(
     *display_tz* is the timezone the user's data is in — either the *assume_tz*
     value for naive input, or the original timezone of tz-aware input.
     """
-    import warnings as _warnings
-
     ambiguous_ts: list[pd.Timestamp] = []
 
     # Try to parse strings → datetime if needed

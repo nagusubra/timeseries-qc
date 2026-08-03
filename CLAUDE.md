@@ -1,6 +1,6 @@
 # timeseries-qc — AI Agent Instructions
 
-This project uses the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.4.2) for time series data quality control.
+This project uses the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.5.0) for time series data quality control.
 
 ## Quick Reference
 

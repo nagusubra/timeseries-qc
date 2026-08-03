@@ -1,6 +1,6 @@
 ---
 title: OSIsoft PI Export — timeseries-qc Tutorial
-description: Wire an OSIsoft PI / historian CSV export with external_quality_col and quality_mode combined or exclusive in timeseries-qc 0.4.2.
+description: Wire an OSIsoft PI / historian CSV export with external_quality_col and quality_mode combined or exclusive in timeseries-qc 0.5.0.
 ---
 
 # OSIsoft PI Export
@@ -8,7 +8,7 @@ description: Wire an OSIsoft PI / historian CSV export with external_quality_col
 Use historian quality codes from an OSIsoft PI (or similar) export alongside — or instead of — internal tsqc rules.
 
 !!! abstract "TL;DR"
-    Pass the status column as `external_quality_col`, map codes with YAML `quality_map` or `quality_map=`, and choose `quality_mode="combined"` (merge, worst-wins) or `"exclusive"` (historian only). Unmapped codes become `bad` with reason `source_data_quality: <value>`. Library version: **0.4.2**.
+    Pass the status column as `external_quality_col`, map codes with YAML `quality_map` or `quality_map=`, and choose `quality_mode="combined"` (merge, worst-wins) or `"exclusive"` (historian only). Unmapped codes become `bad` with reason `source_data_quality: <value>`. Library version: **0.5.0**.
 
 ## When to use this tutorial
 

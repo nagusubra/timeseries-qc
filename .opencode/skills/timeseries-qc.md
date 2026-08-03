@@ -1,6 +1,6 @@
 # timeseries-qc — AI Agent Skill File
 
-Quick reference for AI coding agents to correctly use the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.4.2).
+Quick reference for AI coding agents to correctly use the [timeseries-qc](https://pypi.org/project/timeseries-qc/) library (v0.5.0).
 
 **Library purpose:** Classify time series data rows as `good` / `sus` / `bad` using business rules, with a multi-tag horizontal timeline chart.
 

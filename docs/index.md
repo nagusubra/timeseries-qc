@@ -221,7 +221,7 @@ See the [User Guide](user-guide.md) for full details.
 
 ---
 
-## Known Limitations (v0.4.2)
+## Known Limitations (v0.5.0)
 
 1. **Pandas only.** PySpark and Polars support are planned.
 2. **No YAML override of default rules.** Tag-specific rules add to, not replace, default rules.

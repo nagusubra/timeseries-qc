@@ -1,6 +1,6 @@
 ---
 title: YAML Rules From Scratch — timeseries-qc Tutorial
-description: Author default_rules and tag_rules YAML covering null, flatline, delta, range, outlier, and quality_map for timeseries-qc 0.4.2.
+description: Author default_rules and tag_rules YAML covering null, flatline, delta, range, outlier, and quality_map for timeseries-qc 0.5.0.
 ---
 
 # YAML Rules From Scratch
@@ -8,7 +8,7 @@ description: Author default_rules and tag_rules YAML covering null, flatline, de
 Build a complete rules file from an empty YAML document — defaults, per-tag overrides, and optional historian `quality_map`.
 
 !!! abstract "TL;DR"
-    Put shared checks under `default_rules`, add tag-specific checks under `tag_rules` (glob patterns allowed), and optionally define `quality_map` for an external status column. Tag rules **add** to defaults; they never replace them. Use with `tsqc.check(df, rules="rules.yaml", assume_tz="UTC")`. Library version: **0.4.2**.
+    Put shared checks under `default_rules`, add tag-specific checks under `tag_rules` (glob patterns allowed), and optionally define `quality_map` for an external status column. Tag rules **add** to defaults; they never replace them. Use with `tsqc.check(df, rules="rules.yaml", assume_tz="UTC")`. Library version: **0.5.0**.
 
 ## Why YAML-first?
 
@@ -180,7 +180,7 @@ See [OSIsoft PI Export](osisoft-pi-export.md) for a full historian walkthrough.
 ## Complete example file
 
 ```yaml
-# plant_rules.yaml — timeseries-qc 0.4.2
+# plant_rules.yaml — timeseries-qc 0.5.0
 
 quality_map:
   0: good

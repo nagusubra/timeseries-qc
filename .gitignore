@@ -42,6 +42,7 @@ env/
 .python-version
 
 # Generated data artifacts (scoped — test fixtures are git-tracked)
+data/
 generated_*.csv
 generated_*.html
 output_*.csv
