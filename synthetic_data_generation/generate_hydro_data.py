@@ -45,7 +45,7 @@ def generate_forebay(ts: pd.DatetimeIndex, rng: np.random.Generator) -> np.ndarr
     day8_start = 60 * 24 * 7   # minute index for start of day 8
     values[day8_start : day8_start + 52] = np.nan
 
-    # ── Anomaly 2: 2-hour gap on day 10 (delete rows in place → NaN) ─────
+    # ── Anomaly 2: 2-hour gap on day 10 (delete rows in place -> NaN) ─────
     # We'll mark these NaN here; the generator will drop them from timestamps
     day10_gap_start = 60 * 24 * 9 + 180   # 3h into day 10
     values[day10_gap_start : day10_gap_start + 120] = np.nan
@@ -211,7 +211,7 @@ def build_scada_csv(output_path: str = "data/hydro_plant_scada.csv") -> pd.DataF
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     combined.to_csv(output_path, index=False)
-    print(f"Saved {len(combined):,} rows → {output_path}")
+    print(f"Saved {len(combined):,} rows -> {output_path}")
 
     # Print summary per tag
     for tag, grp in combined.groupby("tag_name"):

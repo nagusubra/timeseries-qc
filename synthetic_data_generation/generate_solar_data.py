@@ -5,7 +5,7 @@ Generate one week of synthetic hourly SCADA data for a solar farm with 3 tags:
   MET.IRRADIANCE      — Pyranometer GHI reading (W/m²)
   TRACKER.ANGLE       — Single-axis tracker tilt angle (degrees from horizontal)
 
-Data covers 2026-06-01 to 2026-06-07 (UTC), 1-hour interval → 168 rows per tag.
+Data covers 2026-06-01 to 2026-06-07 (UTC), 1-hour interval -> 168 rows per tag.
 
 Engineered anomalies (designed to stress-test every built-in rule):
   1. NaN burst (NullRule)        INVERTER.MW    rows 50-54  (5 hours missing)
@@ -86,7 +86,7 @@ frozen_val = round(float(irr_clean[29]), 2)
 irr_values[30:40] = frozen_val
 
 # Anomaly 3: nighttime irradiance spike above physical max (row 72 = 00:00 on day 4)
-# 1100 W/m² exceeds the theoretical clear-sky limit (1050) → triggers RangeRule → bad
+# 1100 W/m² exceeds the theoretical clear-sky limit (1050) -> triggers RangeRule -> bad
 irr_values[72] = 1100.0
 
 met_df = pd.DataFrame({
@@ -96,7 +96,7 @@ met_df = pd.DataFrame({
 })
 
 # ── TRACKER.ANGLE ────────────────────────────────────────────────────────────
-# Single-axis E-W tracker.  Angle in degrees: -60° at sunrise → 0° at noon → +60° at sunset.
+# Single-axis E-W tracker.  Angle in degrees: -60° at sunrise -> 0° at noon -> +60° at sunset.
 # Night: parked at 0° (horizontal, dew-shedding position).
 angle_clean = np.where(elev > 0, -60 + 120 * (ts.hour - 5) / 14, 0.0)
 angle_clean = np.clip(angle_clean, -65, 65)
@@ -127,16 +127,16 @@ combined = pd.concat([inv_df, met_df, angle_df], ignore_index=True)
 out_path = os.path.join(os.path.dirname(__file__), "solar_farm_scada.csv")
 combined.to_csv(out_path, index=False)
 
-print(f"Written {len(combined):,} rows → {out_path}")
+print(f"Written {len(combined):,} rows -> {out_path}")
 print(combined.groupby("tag_name").agg(
     rows=("value", "count"),
     nulls=("value", lambda s: s.isna().sum()),
 ).to_string())
 print("\nEngineered anomalies summary:")
-print("  INVERTER.MW   rows 50-54  : NaN burst (NullRule → bad)")
-print("  INVERTER.MW   row  96     : +25 MW delta spike (DeltaRule → sus/bad)")
-print("  MET.IRRADIANCE rows 30-39 : comm-freeze flatline (FlatlineRule → sus)")
-print("  MET.IRRADIANCE row  72    : nighttime irradiance 1100 W/m\u00b2 (RangeRule \u2192 bad)")
-print("  TRACKER.ANGLE rows 60-62  : 110° out-of-range (RangeRule → bad)")
+print("  INVERTER.MW   rows 50-54  : NaN burst (NullRule -> bad)")
+print("  INVERTER.MW   row  96     : +25 MW delta spike (DeltaRule -> sus/bad)")
+print("  MET.IRRADIANCE rows 30-39 : comm-freeze flatline (FlatlineRule -> sus)")
+print("  MET.IRRADIANCE row  72    : nighttime irradiance 1100 W/m\u00b2 (RangeRule -> bad)")
+print("  TRACKER.ANGLE rows 60-62  : 110° out-of-range (RangeRule -> bad)")
 print("  TRACKER.ANGLE row  100    : duplicate timestamp (check_timestamps)")
-print("  TRACKER.ANGLE rows 120-134: tracker stuck 15h (FlatlineRule → sus)")
+print("  TRACKER.ANGLE rows 120-134: tracker stuck 15h (FlatlineRule -> sus)")
