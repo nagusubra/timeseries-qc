@@ -27,9 +27,10 @@ OUT_SRC = ROOT / "docs" / "assets" / "images" / "social-preview-source.png"
 OUT = ROOT / "docs" / "assets" / "images" / "social-preview.png"
 TARGET = (1200, 630)
 
-# Full cover of old blue-bars mark + light border on the 1024x537 hand art
-LOGO_ERASE_BOX_1024 = (26, 100, 112, 186)  # left, top, right, bottom
-LOGO_PASTE_SIZE = 72  # square size of new mark inside the erased region
+# Full cover of old blue-bars mark + light border on the 1024x537 hand art.
+# Right edge must clear the old white border (x≈113–119) without eating title text (x≈146).
+LOGO_ERASE_BOX_1024 = (24, 98, 130, 188)  # left, top, right, bottom
+LOGO_PASTE_SIZE = 74  # square size of new mark inside the erased region
 
 
 def cover_resize(img: Image.Image, size: tuple[int, int]) -> Image.Image:
