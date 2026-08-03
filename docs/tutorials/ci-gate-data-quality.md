@@ -1,6 +1,6 @@
 ---
 title: CI Gate on Data Quality — timeseries-qc Tutorial
-description: Fail GitHub Actions builds when result.summary() pct_bad exceeds a threshold using timeseries-qc 0.4.2.
+description: Fail GitHub Actions builds when result.summary() pct_bad exceeds a threshold using timeseries-qc 0.5.0.
 ---
 
 # CI Gate on Data Quality
@@ -8,7 +8,7 @@ description: Fail GitHub Actions builds when result.summary() pct_bad exceeds a 
 Treat sensor / fixture data quality as a merge gate: fail the job when any tag’s `pct_bad` exceeds a threshold.
 
 !!! abstract "TL;DR"
-    Run `tsqc.check`, call `result.summary()`, and `sys.exit(1)` (or raise) when `(summary["pct_bad"] > threshold).any()`. Wire the script into GitHub Actions after installing `timeseries-qc`. Library version: **0.4.2**.
+    Run `tsqc.check`, call `result.summary()`, and `sys.exit(1)` (or raise) when `(summary["pct_bad"] > threshold).any()`. Wire the script into GitHub Actions after installing `timeseries-qc`. Library version: **0.5.0**.
 
 ## Why gate on quality?
 
@@ -18,7 +18,7 @@ Unit tests catch code bugs. A QC gate catches **bad fixtures and broken exports*
 
 ```python
 # scripts/qc_gate.py
-"""Fail CI when any tag exceeds pct_bad threshold. timeseries-qc 0.4.2"""
+"""Fail CI when any tag exceeds pct_bad threshold. timeseries-qc 0.5.0"""
 from __future__ import annotations
 
 import argparse
@@ -129,7 +129,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install timeseries-qc
-        run: pip install "timeseries-qc==0.4.2"
+        run: pip install "timeseries-qc==0.5.0"
 
       - name: Run QC gate
         run: |

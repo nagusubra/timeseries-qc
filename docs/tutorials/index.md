@@ -1,11 +1,11 @@
 ---
 title: Tutorials — timeseries-qc
-description: Step-by-step tutorials for solar farm CSV QC, YAML rules, OSIsoft PI historian exports, and CI data-quality gates with timeseries-qc 0.4.2.
+description: Step-by-step tutorials for solar farm CSV QC, YAML rules, OSIsoft PI historian exports, and CI data-quality gates with timeseries-qc 0.5.0.
 ---
 
 # Tutorials
 
-Hands-on walkthroughs for common `timeseries-qc` workflows. Each tutorial uses the real v0.4.2 API (`tsqc.check`, YAML rules, and `QCResult` methods).
+Hands-on walkthroughs for common `timeseries-qc` workflows. Each tutorial uses the real v0.5.0 API (`tsqc.check`, YAML rules, and `QCResult` methods).
 
 !!! abstract "TL;DR"
     Start with the [Solar Farm CSV](solar-farm-csv.md) walkthrough if you are new. Use [YAML Rules From Scratch](yaml-rules-from-scratch.md) when you need per-tag configuration, [OSIsoft PI Export](osisoft-pi-export.md) for historian quality columns, and [CI Gate](ci-gate-data-quality.md) to fail builds on bad data.
@@ -36,7 +36,7 @@ Fail a GitHub Actions job when `result.summary()` `pct_bad` exceeds a threshold.
 ## Prerequisites
 
 - Python 3.10+
-- `pip install timeseries-qc` (v0.4.2)
+- `pip install timeseries-qc` (v0.5.0)
 - A CSV or DataFrame with `timestamp`, `value`, and optionally `tag_name`
 
 ## Suggested order

@@ -1,6 +1,6 @@
 ---
 title: Solar Farm CSV Walkthrough — timeseries-qc Tutorial
-description: Load a multi-tag solar farm CSV, run tsqc.check with assume_tz, and use summary, plot, and export_report. timeseries-qc 0.4.2.
+description: Load a multi-tag solar farm CSV, run tsqc.check with assume_tz, and use summary, plot, and export_report. timeseries-qc 0.5.0.
 ---
 
 # Solar Farm CSV Walkthrough
@@ -8,7 +8,7 @@ description: Load a multi-tag solar farm CSV, run tsqc.check with assume_tz, and
 End-to-end quality control on multi-tag solar SCADA data exported as CSV.
 
 !!! abstract "TL;DR"
-    Load a CSV with `timestamp`, `tag_name`, and `value`, call `tsqc.check(df, assume_tz="UTC")`, then use `result.summary()`, `result.plot().show()`, and `result.export_report("report.html")`. Always pass `assume_tz` for tz-naive CSV timestamps. Library version: **0.4.2**.
+    Load a CSV with `timestamp`, `tag_name`, and `value`, call `tsqc.check(df, assume_tz="UTC")`, then use `result.summary()`, `result.plot().show()`, and `result.export_report("report.html")`. Always pass `assume_tz` for tz-naive CSV timestamps. Library version: **0.5.0**.
 
 ## What you will build
 
@@ -43,11 +43,11 @@ Typical tags for a single-axis tracking plant:
 ## Step 1 — Install and import
 
 ```python
-# Requires timeseries-qc 0.4.2
+# Requires timeseries-qc 0.5.0
 import tsqc
 import pandas as pd
 
-print(tsqc.__version__)  # expect 0.4.2
+print(tsqc.__version__)  # expect 0.5.0
 ```
 
 ## Step 2 — Load the CSV

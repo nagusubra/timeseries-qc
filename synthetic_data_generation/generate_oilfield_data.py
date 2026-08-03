@@ -119,7 +119,8 @@ oht_df = pd.concat(
 # ── Combine and save ─────────────────────────────────────────────────────────
 combined = pd.concat([whp_df, fmrate_df, oht_df], ignore_index=True)
 
-out_path = os.path.join(os.path.dirname(__file__), "oilfield_scada.csv")
+out_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "oilfield_scada.csv")
+os.makedirs(os.path.dirname(out_path), exist_ok=True)
 combined.to_csv(out_path, index=False)
 
 print(f"Written {len(combined):,} rows -> {out_path}")
