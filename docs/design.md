@@ -45,7 +45,7 @@ checkmark from earlier social art.
 | Logo navy | `#0B1120` | Logo fill, `theme-color`, social card chrome |
 | Logo green | `#16A34A` | Check badge; docs `--qc-good` / `--tsqc-green` |
 | Docs primary | Material **indigo** (`#2563EB` adjacent) | Links, buttons, accents on light docs |
-| Docs good | `#16A34A` | `--qc-good` in [`extra.css`](../assets/stylesheets/extra.css) |
+| Docs good | `#16A34A` | `--qc-good` in `assets/stylesheets/extra.css` |
 | Docs suspect | `#CA8A04` | `--qc-sus` |
 | Docs bad | `#DC2626` | `--qc-bad` |
 | Plotly good | `#008000` | Chart segments — **do not change** without an intentional release note |
@@ -79,10 +79,10 @@ is updated first.
 
 | Path | Role |
 |------|------|
-| [`docs/assets/brand/`](../assets/brand/) | Canonical brand pack (master PNG, SVG, sizes) |
-| [`docs/assets/images/`](../assets/images/) | MkDocs copies: favicon, apple-touch, social preview |
-| [`public/brand/`](../../public/brand/) | Mirror of the brand pack for external consumers |
-| [`tsqc/assets/`](../../tsqc/assets/) | Packaged wheel assets (`logo.png`, `logo-64.png`, `logo.svg`, `favicon.ico`) |
+| `docs/assets/brand/` | Canonical brand pack (master PNG, SVG, sizes) |
+| `docs/assets/images/` | MkDocs copies: favicon, apple-touch, social preview |
+| `public/brand/` | Mirror of the brand pack for external consumers |
+| `tsqc/assets/` | Packaged wheel assets (`logo.png`, `logo-64.png`, `logo.svg`, `favicon.ico`) |
 
 **Canonical URLs (docs site)**
 
@@ -130,8 +130,7 @@ exported HTML stays self-contained.
 ## SEO / share cards
 
 - Default OG / Twitter image: `social-preview.png` (1200×630) with
-  `og:image:width` / `height` / `alt` set in
-  [`docs/overrides/main.html`](../overrides/main.html).
+  `og:image:width` / `height` / `alt` set in `docs/overrides/main.html`.
 - Organization + SoftwareApplication JSON-LD use an `ImageObject` for the
   512×512 logo.
 - Prefer the branded social card for page `og_image` unless a page needs a
@@ -164,4 +163,4 @@ exported HTML stays self-contained.
 - [Contributing](contributing.md) — PR process
 - [Architecture](architecture.md) — library internals
 - [AI Citation Tracking](project/ai-citation-tracking.md) — AEO scorecard
-- Brand pack README: [`docs/assets/brand/README.md`](../assets/brand/README.md)
+- Brand pack notes: `docs/assets/brand/README.md` (repo path; not a docs nav page)
