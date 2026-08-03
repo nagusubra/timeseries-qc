@@ -57,12 +57,12 @@ plugins:
   - search:
       lang: en
       separator: '[\s\-\.]+'
+  # Hand-designed OG/Twitter card lives at assets/images/social-preview.png
+  # (see scripts/generate_social_preview.py). Material auto-cards are disabled so
+  # Facebook/LinkedIn scrapers do not prefer assets/images/social/index.png.
   - social:
-      # Requires Cairo (available on GitHub Actions via mkdocs-material[imaging]).
-      # Disable locally when Cairo is missing so --strict builds still pass.
-      enabled: !ENV [CI, false]
-      cards_layout_options:
-        background_color: "#0B1120"
+      enabled: false
+      cards: false
   - tags
   - git-revision-date-localized:
       enable_creation_date: true

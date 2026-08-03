@@ -129,10 +129,11 @@ exported HTML stays self-contained.
 
 ## SEO / share cards
 
-- Default OG / Twitter image: `social-preview.png` (1200×630) with
-  `og:image:width` / `height` / `alt` set in `docs/overrides/main.html`.
-- Organization + SoftwareApplication JSON-LD use an `ImageObject` for the
-  512×512 logo.
+- **Sole share image:** `assets/images/social-preview.png` (1200×630).
+- Material for MkDocs auto social cards are **disabled** (`social.cards: false`) so
+  scrapers do not prefer `assets/images/social/*.png`.
+- OG / Twitter tags are emitted from `docs/overrides/main.html` (`site_meta` block)
+  with `og:image:width` / `height` / `alt` / `type`.
 - Prefer the branded social card for page `og_image` unless a page needs a
   specific product screenshot.
 
