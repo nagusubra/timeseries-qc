@@ -7,7 +7,7 @@ description: >-
   charts. Works with SCADA, DCS, IoT, and historian data.
 og_title: "timeseries-qc: SCADA & Historian Data Quality Control"
 og_description: "Tag every row as good/suspect/bad with 5 built-in rules, YAML config, and Plotly timeline charts. The only library built specifically for time series QC."
-og_image: "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png"
+og_image: "https://nagusubra.github.io/timeseries-qc/assets/images/social-preview.png"
 ---
 
 <div class="tsqc-hero" markdown="1">

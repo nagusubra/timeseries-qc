@@ -1,8 +1,12 @@
 # timeseries-qc
 
+<p align="center">
+  <img src="./docs/assets/brand/logo-master-512.png" alt="timeseries-qc logo" width="128" height="128">
+</p>
+
 [![PyPI](https://img.shields.io/pypi/v/timeseries-qc)](https://pypi.org/project/timeseries-qc/)
 [![Python](https://img.shields.io/pypi/pyversions/timeseries-qc)](https://pypi.org/project/timeseries-qc/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/nagusubra/timeseries-qc?style=social)](https://github.com/nagusubra/timeseries-qc)
 [![Docs](https://img.shields.io/badge/docs-nagusubra.github.io-blue)](https://nagusubra.github.io/timeseries-qc/)
 

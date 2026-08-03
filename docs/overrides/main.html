@@ -2,11 +2,13 @@
 
 {% block extrahead %}
 
-  <!-- Theme color -->
-  <meta name="theme-color" content="#2563eb">
+  <!-- Theme color (logo navy) -->
+  <meta name="theme-color" content="#0B1120">
   <meta name="msapplication-config" content="browserconfig.xml">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="apple-touch-icon" href="assets/images/favicon.svg">
+  <link rel="icon" href="assets/images/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
 
   {# Honor front-matter robots: noindex when present #}
   {% if page and page.meta and page.meta.robots %}
@@ -16,7 +18,7 @@
   {# Open Graph & Twitter Card meta tags #}
   {% set _og_title = (page.meta.og_title if page and page.meta and page.meta.og_title else (page.title if page else config.site_name)) %}
   {% set _og_desc = (page.meta.og_description if page and page.meta and page.meta.og_description else (page.meta.description if page and page.meta and page.meta.description else config.site_description)) %}
-  {% set _og_image = (page.meta.og_image if page and page.meta and page.meta.og_image else "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png") %}
+  {% set _og_image = (page.meta.og_image if page and page.meta and page.meta.og_image else "https://nagusubra.github.io/timeseries-qc/assets/images/social-preview.png") %}
 
   <meta property="og:title" content="{{ _og_title }}">
   <meta property="og:description" content="{{ _og_desc }}">
@@ -41,7 +43,7 @@
     "@id": "{{ org_id }}",
     "name": "timeseries-qc",
     "url": "https://nagusubra.github.io/timeseries-qc/",
-    "logo": "https://nagusubra.github.io/timeseries-qc/assets/images/logo.svg",
+    "logo": "https://nagusubra.github.io/timeseries-qc/assets/brand/logo-master-512.png",
     "sameAs": [
       "https://github.com/nagusubra/timeseries-qc",
       "https://pypi.org/project/timeseries-qc/"
@@ -86,7 +88,7 @@
     "keywords": "timeseries, data quality, SCADA, historian, IoT, data validation, sensor data, industrial IoT, time series analysis, pandas, plotly, DCS, OPC UA, OSIsoft PI, outlier detection, data cleansing, energy sector, manufacturing",
     "softwareRequirements": "Python 3.9+, pandas>=1.5, plotly>=5.0, pyyaml>=6.0",
     "applicationSubCategory": "Data Quality Control",
-    "screenshot": "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png",
+    "screenshot": "https://nagusubra.github.io/timeseries-qc/assets/images/social-preview.png",
     "featureList": [
       "5 built-in quality rules (null, flatline, delta, range, outlier)",
       "Multi-tag horizontal quality timeline visualization",
@@ -131,7 +133,7 @@
     "@type": "HowTo",
     "name": "How to run a time series quality check with timeseries-qc",
     "description": "Run your first time series quality check in 5 lines of Python code using the timeseries-qc library",
-    "image": "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png",
+    "image": "https://nagusubra.github.io/timeseries-qc/assets/images/social-preview.png",
     "totalTime": "PT2M",
     "estimatedCost": {
       "@type": "MonetaryAmount",

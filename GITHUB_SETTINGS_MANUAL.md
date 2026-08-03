@@ -82,11 +82,13 @@ https://nagusubra.github.io/timeseries-qc/
 - Install command: `pip install timeseries-qc`
 
 **Colors to use (library design tokens):**
-- Primary: #2563eb (logo / brand blue)
+- Logo navy: #0B1120 (logo background / theme-color)
+- Logo green: #16A34A (check badge; same as docs `--qc-good`)
+- Docs primary (Material indigo): #2563eb (links / accents on light docs)
 - Good: #16a34a (docs CSS `--qc-good`)
 - Suspect: #ca8a04 (docs CSS `--qc-sus`)
 - Bad: #dc2626 (docs CSS `--qc-bad`)
-- Chart segments: #008000 / #FFFF00 / #FF0000 (Plotly timeline)
+- Chart segments: #008000 / #FFFF00 / #FF0000 (Plotly timeline — unchanged)
 
 **Why:** Social preview images increase click-through rates by 5x on Twitter, LinkedIn, Slack, Discord.
 

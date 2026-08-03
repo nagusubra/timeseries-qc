@@ -7,6 +7,7 @@ Public API:
     NullRule, FlatlineRule, DeltaRule, RangeRule, CustomRule
 """
 
+from tsqc.brand import logo_bytes, logo_svg
 from tsqc.checker import check
 from tsqc.result import QCResult
 from tsqc.rules.builtins import (
@@ -28,4 +29,6 @@ __all__ = [
     "NullRule",
     "OutlierRule",
     "RangeRule",
+    "logo_bytes",
+    "logo_svg",
 ]

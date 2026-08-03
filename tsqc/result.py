@@ -284,6 +284,20 @@ class QCResult:
                 f"<thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table>"
             )
 
+        # Inline brand mark (navy + white bars + green check) — keeps report self-contained
+        logo_svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="40" height="40" '
+            'role="img" aria-label="timeseries-qc">'
+            '<rect width="512" height="512" rx="96" fill="#0B1120"/>'
+            '<rect x="118" y="268" width="68" height="132" rx="18" fill="#FFFFFF"/>'
+            '<rect x="222" y="188" width="68" height="212" rx="18" fill="#FFFFFF"/>'
+            '<rect x="326" y="108" width="68" height="292" rx="18" fill="#FFFFFF"/>'
+            '<circle cx="368" cy="368" r="92" fill="#16A34A"/>'
+            '<path d="M318 370 L352 404 L424 318" fill="none" stroke="#FFFFFF" '
+            'stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>'
+            "</svg>"
+        )
+
         html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -291,18 +305,26 @@ class QCResult:
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title}</title>
 <style>
-  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-         margin: 0; padding: 20px; background: #fafafa; color: #333; }}
-  h1 {{ color: #2c3e50; margin-bottom: 4px; }}
-  h2 {{ color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 6px; }}
-  .meta {{ color: #7f8c8d; font-size: 13px; margin-bottom: 24px; }}
+  body {{ font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         margin: 0; padding: 20px; background: #f8fafc; color: #1e293b; }}
+  h1 {{ color: #0b1120; margin: 0; font-size: 1.5rem; }}
+  h2 {{ color: #0b1120; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }}
+  .brand {{ display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }}
+  .brand-sub {{ color: #16a34a; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }}
+  .meta {{ color: #64748b; font-size: 13px; margin-bottom: 24px; }}
   .section {{ background: #fff; border-radius: 8px; padding: 20px;
-              box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 24px; }}
+              border: 1px solid #e2e8f0; margin-bottom: 24px; }}
 </style>
 </head>
 <body>
 <div class="section">
-  <h1>{title}</h1>
+  <div class="brand">
+    {logo_svg}
+    <div>
+      <h1>{title}</h1>
+      <div class="brand-sub">timeseries-qc</div>
+    </div>
+  </div>
   <p class="meta">
     Generated: {run_ts} &nbsp;|&nbsp;
     Tags: {n_tags} &nbsp;|&nbsp;
