@@ -3,7 +3,7 @@ title: Quickstart — timeseries-qc in 5 Lines
 description: Run your first time series quality check in 5 lines of Python with timeseries-qc. Classify every row as good, suspect, or bad using five built-in rules including statistical outlier detection.
 og_title: "Quickstart: Quality Check in 5 Lines of Python"
 og_description: "Install, import, load data, run check, visualize. Get started with timeseries-qc in under 2 minutes."
-og_image: "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png"
+og_image: "https://nagusubra.github.io/timeseries-qc/assets/images/social-preview.png"
 ---
 
 # Quickstart

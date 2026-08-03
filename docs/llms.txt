@@ -26,6 +26,7 @@
 ## Architecture & Design
 
 - [Architecture](https://nagusubra.github.io/timeseries-qc/architecture/): Package structure, data flow, design decisions (pandas-native, vectorized, 3-level classification, worst-level-wins).
+- [Design System](https://nagusubra.github.io/timeseries-qc/design/): Brand logo, color tokens, typography, asset locations, and rules for docs / reports / social cards.
 
 ## Integration Guides
 
@@ -53,6 +54,8 @@
 
 - [GitHub Repository](https://github.com/nagusubra/timeseries-qc): Source code, issues, discussions.
 - [PyPI Package](https://pypi.org/project/timeseries-qc/): Python package index page.
+- [Brand logo (512×512)](https://nagusubra.github.io/timeseries-qc/assets/brand/logo-master-512.png): Official pictorial mark (navy bars + green check).
+- [Social preview (1200×630)](https://nagusubra.github.io/timeseries-qc/assets/images/social-preview.png): Canonical Open Graph / GitHub social card.
 
 ## Specifications
 

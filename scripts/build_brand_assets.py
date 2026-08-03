@@ -160,9 +160,18 @@ def main() -> int:
 
     sync_site_assets(master_path)
 
+    # Packaged wheel assets (PyPI / importlib.resources)
+    pkg = ROOT / "tsqc" / "assets"
+    pkg.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(master_path, pkg / "logo.png")
+    shutil.copy2(BRAND / "logo.svg", pkg / "logo.svg")
+    shutil.copy2(sizes_dir / "logo-64.png", pkg / "logo-64.png")
+    shutil.copy2(sizes_dir / "favicon.ico", pkg / "favicon.ico")
+
     print(f"Master: {master_path} ({master.size[0]}x{master.size[1]})")
     print(f"Brand pack: {BRAND}")
     print(f"Public pack: {PUBLIC}")
+    print(f"Package assets: {pkg}")
     print(f"Site logo/favicon synced to: {IMAGES}")
     return 0
 

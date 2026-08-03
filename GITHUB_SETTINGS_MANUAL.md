@@ -90,7 +90,9 @@ https://nagusubra.github.io/timeseries-qc/
 - Bad: #dc2626 (docs CSS `--qc-bad`)
 - Chart segments: #008000 / #FFFF00 / #FF0000 (Plotly timeline — unchanged)
 
-**Why:** Social preview images increase click-through rates by 5x on Twitter, LinkedIn, Slack, Discord.
+**Why:** Social preview images increase click-through rates on Twitter, LinkedIn, Slack, Discord.
+
+**After logo / brand changes:** regenerate with `python scripts/generate_social_preview.py`, then re-upload the new `docs/assets/images/social-preview.png` here. See [Design System](docs/design.md).
 
 ---
 

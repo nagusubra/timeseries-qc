@@ -162,6 +162,7 @@ nav:
   - Project:
     - Overview: project/index.md
     - Community: community.md
+    - Design System: design.md
     - Roadmap: roadmap.md
     - Changelog: changelog.md
     - Contributing: contributing.md
