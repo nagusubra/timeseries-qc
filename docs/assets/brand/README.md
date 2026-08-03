@@ -5,7 +5,7 @@ Canonical brand mark: navy tile + white ascending bars + green check badge.
 PNG / WebP / ICO / SVG use a **transparent** canvas outside the rounded tile
 (no black corner boxes). JPEG flattens those corners onto white.
 
-**Full design rules:** see [Design System](../../design.md) (docs site: `/design/`).
+**Full design rules:** see `docs/design.md` on the docs site at `/design/`.
 
 ## Tokens
 

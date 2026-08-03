@@ -12,7 +12,7 @@ og_image: "https://nagusubra.github.io/timeseries-qc/assets/images/social-previe
 
 <div class="tsqc-hero" markdown="1">
 
-# **timeseries**-qc
+# timeseries-qc
 
 **The open source data quality-control layer for SCADA, DCS, IoT, and historian time-series data.**
 

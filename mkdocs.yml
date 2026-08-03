@@ -50,6 +50,8 @@ hooks:
 
 exclude_docs: |
   _data/**
+  assets/brand/README.md
+  comparison.md
 
 plugins:
   - search:

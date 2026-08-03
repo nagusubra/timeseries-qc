@@ -1,4 +1,16 @@
-/* Brand + quality badge colors */
+/* Header brand mark — icon only; site_name supplies "timeseries-qc" */
+.md-header__button.md-logo {
+  padding: 0.2rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.8rem;
+  width: 1.8rem;
+  border-radius: 0.35rem;
+}
+
+/* Quality badge colors */
 :root {
   --tsqc-navy: #0b1120;
   --tsqc-green: #16a34a;
