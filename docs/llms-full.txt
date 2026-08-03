@@ -464,4 +464,7 @@ Each use case has a synthetic data generator under `synthetic_data_generation/`.
 - PyPI: https://pypi.org/project/timeseries-qc/
 - Issues: https://github.com/nagusubra/timeseries-qc/issues
 - Docs: https://nagusubra.github.io/timeseries-qc/
+- Design System: https://nagusubra.github.io/timeseries-qc/design/
+- Brand logo (512×512): https://nagusubra.github.io/timeseries-qc/assets/brand/logo-master-512.png
+- Social preview (1200×630): https://nagusubra.github.io/timeseries-qc/assets/images/social-preview.png
 - License: MIT

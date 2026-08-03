@@ -23,4 +23,9 @@ Release notes for all versions.
 
 How to build, test, and contribute to the library.
 </div>
+<div class="tsqc-grid-item" markdown="1">
+**[Design System](../design.md)**
+
+Logo, color tokens, typography, and brand asset conventions.
+</div>
 </div>

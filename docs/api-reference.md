@@ -3,7 +3,7 @@ title: API Reference — timeseries-qc
 description: Complete API reference for timeseries-qc including tsqc.check(), QCResult methods, and all rule classes.
 og_title: "timeseries-qc API Reference"
 og_description: "Complete API documentation for tsqc.check(), QCResult methods (summary, plot, issue_summary), and all 5 built-in rules."
-og_image: "https://nagusubra.github.io/timeseries-qc/assets/images/oil_field_example.png"
+og_image: "https://nagusubra.github.io/timeseries-qc/assets/images/social-preview.png"
 ---
 
 # API Reference

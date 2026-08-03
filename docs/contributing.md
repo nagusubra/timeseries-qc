@@ -32,6 +32,19 @@ pytest tests/
 - Type hints for all public functions
 - Docstrings for all public classes and methods
 
+## Brand & Design
+
+Visual identity (logo, colors, typography, social cards, report chrome) is
+documented in the [Design System](design.md).
+
+When changing docs UI, README badges, HTML reports, or marketing images:
+
+1. Follow [Design System](design.md) tokens and do/don’t rules
+2. Rebuild assets with `python scripts/build_brand_assets.py` and
+   `python scripts/generate_social_preview.py` when the logo or social card changes
+3. Keep Material indigo for docs accents; keep Plotly chart colors unless the
+   change is intentional and documented
+
 ## Pull Request Process
 
 1. Fork the repository

@@ -2,11 +2,15 @@
 
 {% block extrahead %}
 
-  <!-- Theme color -->
-  <meta name="theme-color" content="#2563eb">
-  <meta name="msapplication-config" content="browserconfig.xml">
-  <link rel="manifest" href="site.webmanifest">
-  <link rel="apple-touch-icon" href="assets/images/favicon.svg">
+  {% set _base = "https://nagusubra.github.io/timeseries-qc" %}
+
+  <!-- Theme color (logo navy) -->
+  <meta name="theme-color" content="#0B1120">
+  <meta name="msapplication-config" content="{{ _base }}/browserconfig.xml">
+  <link rel="manifest" href="{{ _base }}/site.webmanifest">
+  <link rel="icon" href="{{ _base }}/assets/images/favicon.ico" sizes="any">
+  <link rel="icon" href="{{ _base }}/assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ _base }}/assets/images/apple-touch-icon.png">
 
   {# Honor front-matter robots: noindex when present #}
   {% if page and page.meta and page.meta.robots %}
@@ -16,22 +20,30 @@
   {# Open Graph & Twitter Card meta tags #}
   {% set _og_title = (page.meta.og_title if page and page.meta and page.meta.og_title else (page.title if page else config.site_name)) %}
   {% set _og_desc = (page.meta.og_description if page and page.meta and page.meta.og_description else (page.meta.description if page and page.meta and page.meta.description else config.site_description)) %}
-  {% set _og_image = (page.meta.og_image if page and page.meta and page.meta.og_image else "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png") %}
+  {% set _og_image = (page.meta.og_image if page and page.meta and page.meta.og_image else _base + "/assets/images/social-preview.png") %}
+  {% set _og_image_alt = (page.meta.og_image_alt if page and page.meta and page.meta.og_image_alt else "timeseries-qc — Data Quality Control for SCADA & Historian Data") %}
 
+  <meta property="og:site_name" content="timeseries-qc">
+  <meta property="og:locale" content="en_US">
   <meta property="og:title" content="{{ _og_title }}">
   <meta property="og:description" content="{{ _og_desc }}">
   <meta property="og:image" content="{{ _og_image }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{ _og_image_alt }}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ page.canonical_url }}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ _og_title }}">
   <meta name="twitter:description" content="{{ _og_desc }}">
   <meta name="twitter:image" content="{{ _og_image }}">
+  <meta name="twitter:image:alt" content="{{ _og_image_alt }}">
 
-  {% set org_id = "https://nagusubra.github.io/timeseries-qc/#organization" %}
-  {% set website_id = "https://nagusubra.github.io/timeseries-qc/#website" %}
-  {% set software_id = "https://nagusubra.github.io/timeseries-qc/#software" %}
-  {% set date_modified = page.meta.git_revision_date_localized_raw_iso_date if page and page.meta and page.meta.git_revision_date_localized_raw_iso_date else "2026-07-07" %}
+  {% set org_id = _base + "/#organization" %}
+  {% set website_id = _base + "/#website" %}
+  {% set software_id = _base + "/#software" %}
+  {% set logo_id = _base + "/#logo" %}
+  {% set date_modified = page.meta.git_revision_date_localized_raw_iso_date if page and page.meta and page.meta.git_revision_date_localized_raw_iso_date else "2026-08-03" %}
 
   <!-- Organization Schema -->
   <script type="application/ld+json">
@@ -40,13 +52,23 @@
     "@type": "Organization",
     "@id": "{{ org_id }}",
     "name": "timeseries-qc",
-    "url": "https://nagusubra.github.io/timeseries-qc/",
-    "logo": "https://nagusubra.github.io/timeseries-qc/assets/images/logo.svg",
+    "alternateName": "tsqc",
+    "url": "{{ _base }}/",
+    "logo": {
+      "@type": "ImageObject",
+      "@id": "{{ logo_id }}",
+      "url": "{{ _base }}/assets/brand/logo-master-512.png",
+      "contentUrl": "{{ _base }}/assets/brand/logo-master-512.png",
+      "width": 512,
+      "height": 512,
+      "caption": "timeseries-qc logo — navy tile with ascending bars and green check badge"
+    },
+    "image": { "@id": "{{ logo_id }}" },
     "sameAs": [
       "https://github.com/nagusubra/timeseries-qc",
       "https://pypi.org/project/timeseries-qc/"
     ],
-    "description": "Open-source Python library for time series data quality control"
+    "description": "Open-source Python library for time series data quality control of SCADA, DCS, IoT, and historian data"
   }
   </script>
 
@@ -67,7 +89,7 @@
       "version": "3.9+"
     },
     "description": "Open-source Python library for time series data quality control. Tags every row as good, suspect, or bad with five built-in rules (null, flatline, delta, range, outlier), YAML configuration, and Plotly timeline charts. Works with SCADA, DCS, IoT, and historian data.",
-    "url": "https://nagusubra.github.io/timeseries-qc/",
+    "url": "{{ _base }}/",
     "downloadUrl": "https://pypi.org/project/timeseries-qc/",
     "installUrl": "https://pypi.org/project/timeseries-qc/#files",
     "codeRepository": "https://github.com/nagusubra/timeseries-qc",
@@ -78,6 +100,8 @@
     "author": { "@id": "{{ org_id }}" },
     "publisher": { "@id": "{{ org_id }}" },
     "isPartOf": { "@id": "{{ website_id }}" },
+    "image": { "@id": "{{ logo_id }}" },
+    "logo": { "@id": "{{ logo_id }}" },
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -86,7 +110,28 @@
     "keywords": "timeseries, data quality, SCADA, historian, IoT, data validation, sensor data, industrial IoT, time series analysis, pandas, plotly, DCS, OPC UA, OSIsoft PI, outlier detection, data cleansing, energy sector, manufacturing",
     "softwareRequirements": "Python 3.9+, pandas>=1.5, plotly>=5.0, pyyaml>=6.0",
     "applicationSubCategory": "Data Quality Control",
-    "screenshot": "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png",
+    "screenshot": [
+      {
+        "@type": "ImageObject",
+        "url": "{{ _base }}/assets/images/social-preview.png",
+        "contentUrl": "{{ _base }}/assets/images/social-preview.png",
+        "width": 1200,
+        "height": 630,
+        "caption": "timeseries-qc social preview — SCADA quality timeline and brand mark"
+      },
+      {
+        "@type": "ImageObject",
+        "url": "{{ _base }}/assets/images/solar_farm_example.png",
+        "contentUrl": "{{ _base }}/assets/images/solar_farm_example.png",
+        "caption": "Solar farm SCADA quality timeline example"
+      },
+      {
+        "@type": "ImageObject",
+        "url": "{{ _base }}/assets/images/oil_field_example.png",
+        "contentUrl": "{{ _base }}/assets/images/oil_field_example.png",
+        "caption": "Oil field SCADA quality timeline example"
+      }
+    ],
     "featureList": [
       "5 built-in quality rules (null, flatline, delta, range, outlier)",
       "Multi-tag horizontal quality timeline visualization",
@@ -131,7 +176,13 @@
     "@type": "HowTo",
     "name": "How to run a time series quality check with timeseries-qc",
     "description": "Run your first time series quality check in 5 lines of Python code using the timeseries-qc library",
-    "image": "https://nagusubra.github.io/timeseries-qc/assets/images/solar_farm_example.png",
+    "image": {
+      "@type": "ImageObject",
+      "url": "{{ _base }}/assets/images/social-preview.png",
+      "contentUrl": "{{ _base }}/assets/images/social-preview.png",
+      "width": 1200,
+      "height": 630
+    },
     "totalTime": "PT2M",
     "estimatedCost": {
       "@type": "MonetaryAmount",
@@ -151,7 +202,7 @@
         "position": 1,
         "name": "Install timeseries-qc",
         "text": "Install the library using pip install timeseries-qc",
-        "url": "https://nagusubra.github.io/timeseries-qc/installation/"
+        "url": "{{ _base }}/installation/"
       },
       {
         "@type": "HowToStep",
@@ -197,14 +248,14 @@
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://nagusubra.github.io/timeseries-qc/"
+        "item": "{{ _base }}/"
       }
       {% for ancestor in page.ancestors %}
       ,{
         "@type": "ListItem",
         "position": {{ loop.index + 1 }},
         "name": "{{ ancestor.title }}",
-        "item": "https://nagusubra.github.io/timeseries-qc/{{ ancestor.url }}"
+        "item": "{{ _base }}/{{ ancestor.url }}"
       }
       {% endfor %}
       ,{
@@ -225,13 +276,14 @@
     "@type": "WebSite",
     "@id": "{{ website_id }}",
     "name": "timeseries-qc Documentation",
-    "url": "https://nagusubra.github.io/timeseries-qc/",
+    "url": "{{ _base }}/",
     "publisher": { "@id": "{{ org_id }}" },
+    "image": { "@id": "{{ logo_id }}" },
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
         "@type": "EntryPoint",
-        "urlTemplate": "https://nagusubra.github.io/timeseries-qc/?q={search_term_string}"
+        "urlTemplate": "{{ _base }}/?q={search_term_string}"
       },
       "query-input": "required name=search_term_string"
     }
