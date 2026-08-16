@@ -211,12 +211,20 @@ def archive_repo() -> None:
 
 def archive_star_history(created: str) -> None:
     stars = api_get_paged(f"/repos/{REPO}/stargazers", accept="application/vnd.github.star+json")
+    if not stars:
+        # e.g. 403 from a token that cannot list stargazers (GitHub restricts the
+        # endpoint to admins/collaborators). Never clobber existing history.
+        log("[warn] stargazers fetch empty/failed; keeping existing stars.csv")
+        return
     rows = [{"date": r["date"], "stars": r["value"]} for r in cumulative_series(created, [s.get("starred_at", "") for s in stars])]
     merge_into(os.path.join(DATA_DIR, "stars.csv"), STARS_FIELDS, ["date"], rows)
 
 
 def archive_fork_history(created: str) -> None:
     forks = api_get_paged(f"/repos/{REPO}/forks?sort=oldest")
+    if not forks:
+        log("[warn] forks fetch empty/failed; keeping existing forks.csv")
+        return
     rows = [{"date": r["date"], "forks": r["value"]} for r in cumulative_series(created, [f.get("created_at", "") for f in forks])]
     merge_into(os.path.join(DATA_DIR, "forks.csv"), FORKS_FIELDS, ["date"], rows)
 
