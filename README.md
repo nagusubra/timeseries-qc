@@ -9,6 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/nagusubra/timeseries-qc?style=social)](https://github.com/nagusubra/timeseries-qc)
 [![Docs](https://img.shields.io/badge/docs-nagusubra.github.io-blue)](https://nagusubra.github.io/timeseries-qc/)
+[![Traffic](https://raw.githubusercontent.com/nagusubra/timeseries-qc/traffic-data/doc/metric/badge.svg)](https://nagusubra.github.io/timeseries-qc/doc/metric/dashboard/)
 
 **The open source data quality-control layer for SCADA, DCS, IoT, and historian timeseries data.**
 

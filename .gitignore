@@ -47,3 +47,6 @@ generated_*.csv
 generated_*.html
 output_*.csv
 output_*.html
+
+# Hourly traffic archive (lives on the traffic-data branch, not main)
+.metrics/data/
