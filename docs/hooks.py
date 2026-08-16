@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 
@@ -33,12 +32,3 @@ def on_page_context(context, page, config, **kwargs):
         else:
             context["faq_items"] = []
     return context
-
-
-def on_post_build(config, **kwargs):
-    """Copy doc/metric (traffic dashboard + badge) into the built site so it is
-    served at /doc/metric/ by the GitHub Pages deploy."""
-    site_dir = Path(config["site_dir"])
-    metric_dir = Path(config["config_file_path"]).parent / "doc" / "metric"
-    if metric_dir.is_dir():
-        shutil.copytree(metric_dir, site_dir / "doc" / "metric", dirs_exist_ok=True)
