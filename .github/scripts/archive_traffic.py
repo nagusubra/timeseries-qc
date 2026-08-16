@@ -7,7 +7,9 @@ on a schedule (see .github/workflows/traffic.yml). Each run:
 
   * fetches the full 14-day views/clones window and merges it into the
     persistent CSVs (newer values win),
-  * snapshots the top referrers/paths for today,
+  * snapshots the top referrers/paths dated with the traffic as-of date
+    (the most recent day in the views window, so all datasets share one
+    timeline and the dashboard's range filters apply uniformly),
   * snapshots repo-level counters (stars, forks, true watchers/subscribers,
     open issues, contributors, releases),
   * rebuilds full star/fork history (backfillable to repo creation via the
@@ -138,13 +140,16 @@ def cumulative_series(created: str, event_days: list[str]) -> list[dict]:
     return series
 
 
-def archive_views() -> None:
+def archive_views() -> str:
+    """Merge the 14-day views window; return the as-of date (latest day)."""
     data = api_get(f"/repos/{REPO}/traffic/views?per=day") or {}
     rows = [
         {"date": d["timestamp"][:10], "views": d["count"], "uniques": d["uniques"]}
         for d in data.get("views", [])
     ]
     merge_into(os.path.join(DATA_DIR, "views.csv"), VIEWS_FIELDS, ["date"], rows)
+    dates = [d["timestamp"][:10] for d in data.get("views", [])]
+    return max(dates) if dates else today_utc()
 
 
 def archive_clones() -> None:
@@ -156,20 +161,18 @@ def archive_clones() -> None:
     merge_into(os.path.join(DATA_DIR, "clones.csv"), CLONES_FIELDS, ["date"], rows)
 
 
-def archive_referrers() -> None:
-    today = today_utc().isoformat()
+def archive_referrers(asof: str) -> None:
     rows = [
-        {"date": today, "referrer": r.get("referrer", ""), "count": r.get("count", 0), "uniques": r.get("uniques", 0)}
+        {"date": asof, "referrer": r.get("referrer", ""), "count": r.get("count", 0), "uniques": r.get("uniques", 0)}
         for r in (api_get(f"/repos/{REPO}/traffic/popular/referrers") or [])
     ]
     merge_into(os.path.join(DATA_DIR, "referrers.csv"), REFERRERS_FIELDS, ["date", "referrer"], rows)
 
 
-def archive_paths() -> None:
-    today = today_utc().isoformat()
+def archive_paths(asof: str) -> None:
     rows = [
         {
-            "date": today,
+            "date": asof,
             "path": p.get("path", ""),
             "title": p.get("title", ""),
             "count": p.get("count", 0),
@@ -317,10 +320,10 @@ def main() -> int:
     if not os.environ.get("CI"):
         log(f"local run | repo={REPO} | token={'present' if TOKEN else 'MISSING (traffic endpoints will be skipped)'}")
     log(f"archiving traffic for {REPO}")
-    archive_views()
+    asof = archive_views()
     archive_clones()
-    archive_referrers()
-    archive_paths()
+    archive_referrers(asof)
+    archive_paths(asof)
     archive_repo()
     archive_commits()
     archive_issues()
