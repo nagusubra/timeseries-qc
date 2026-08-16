@@ -24,7 +24,7 @@ Then render a multi-tag horizontal status timeline — the chart that no other o
 [![Python](https://img.shields.io/pypi/pyversions/timeseries-qc)](https://pypi.org/project/timeseries-qc/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/nagusubra/timeseries-qc/blob/main/LICENSE)
 [![GitHub](https://img.shields.io/github/stars/nagusubra/timeseries-qc?style=social)](https://github.com/nagusubra/timeseries-qc)
-[![Repo traffic](https://raw.githubusercontent.com/nagusubra/timeseries-qc/traffic-data/doc/metric/badge.svg)](https://nagusubra.github.io/timeseries-qc/doc/metric/dashboard/)
+[![Repo traffic](https://raw.githubusercontent.com/nagusubra/traffic/main/doc/metric/timeseries-qc/badge.svg)](https://nagusubra.github.io/traffic/doc/metric/timeseries-qc/)
 </div>
 
 <div class="tsqc-install">
@@ -51,7 +51,7 @@ That's the entire API. `check()` returns a `QCResult` with all downstream method
 
 [Get Started &rarr;](quickstart.md){ .md-button .md-button--primary }
 [Installation Guide &rarr;](installation.md){ .md-button }
-[Traffic Dashboard &rarr;](doc/metric/dashboard/){ .md-button }
+[Traffic Dashboard &rarr;](https://nagusubra.github.io/traffic/doc/metric/timeseries-qc/){ .md-button }
 [View on GitHub &rarr;](https://github.com/nagusubra/timeseries-qc){ .md-button }
 
 ---
