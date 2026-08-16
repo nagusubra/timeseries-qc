@@ -169,4 +169,5 @@ nav:
     - Changelog: changelog.md
     - Contributing: contributing.md
     - AI Citation Tracking: project/ai-citation-tracking.md
+    - Repo Traffic: https://nagusubra.github.io/timeseries-qc/doc/metric/dashboard/
     - Report Issue: https://github.com/nagusubra/timeseries-qc/issues/new
