@@ -127,6 +127,7 @@ nav:
     - Overview: getting-started/index.md
     - Installation: installation.md
     - Quickstart: quickstart.md
+    - Quickstart Notebook: quickstart-notebook.md
     - User Guide: user-guide.md
     - Examples: examples.md
   - Documentation:
