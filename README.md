@@ -188,6 +188,7 @@ result = tsqc.check(
 
 ## Examples
 
+- [examples/quickstart.ipynb](examples/quickstart.ipynb) — 5-minute end-to-end walkthrough: synthetic SCADA data → YAML rules → quality timeline
 - [examples/solar_farm.ipynb](examples/solar_farm.ipynb) — solar farm SCADA data with anomaly injection
 - [examples/oilfield.ipynb](examples/oilfield.ipynb) — oil well pad SCADA data with anomaly injection
 

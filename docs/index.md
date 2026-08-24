@@ -242,6 +242,11 @@ See the [User Guide](user-guide.md) for full details.
 Run your first quality check in 5 lines.
 </div>
 <div class="tsqc-grid-item" markdown="1">
+**[Quickstart Notebook](https://github.com/nagusubra/timeseries-qc/blob/main/examples/quickstart.ipynb)**
+
+Run the full workflow interactively with synthetic SCADA data.
+</div>
+<div class="tsqc-grid-item" markdown="1">
 **[Examples](examples.md)**
 
 Real-world code for solar, oil & gas, manufacturing, and more.

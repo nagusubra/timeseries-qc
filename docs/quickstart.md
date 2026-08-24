@@ -64,6 +64,8 @@ result.export_report("report.html")
 
 ## Next Steps
 
+> **Prefer to run it?** [examples/quickstart.ipynb](https://github.com/nagusubra/timeseries-qc/blob/main/examples/quickstart.ipynb) walks through this same flow end-to-end with synthetic data, injected anomalies, and the timeline chart.
+
 - [User Guide](user-guide.md) — detailed walkthrough
 - [YAML Configuration](yaml-configuration.md) — create rules without Python
 - [API Reference](api-reference.md) — full method documentation

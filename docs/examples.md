@@ -9,6 +9,12 @@ Real-world code examples for common use cases. Each example includes complete, r
 
 ---
 
+## Quickstart Notebook
+
+The fastest way to see the whole library in action: [`examples/quickstart.ipynb`](https://github.com/nagusubra/timeseries-qc/blob/main/examples/quickstart.ipynb) generates a small synthetic SCADA dataset (flow, pressure, temperature) with injected range violations, a flatline, nulls, and a timestamp gap, then runs it through the YAML config → `tsqc.check()` → summary/issue tables → Plotly timeline → HTML export.
+
+---
+
 ## Solar Farm SCADA Data
 
 Detect inverter faults, irradiance sensor failures, and tracker angle anomalies.
