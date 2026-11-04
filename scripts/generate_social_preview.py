@@ -80,12 +80,12 @@ def main() -> int:
 
     logo = Image.open(LOGO)
     scale = hand.width / 1024.0
-    l, t, r, b = LOGO_ERASE_BOX_1024
+    left, top, right, bottom = LOGO_ERASE_BOX_1024
     erase_box = (
-        int(round(l * scale)),
-        int(round(t * scale)),
-        int(round(r * scale)),
-        int(round(b * scale)),
+        int(round(left * scale)),
+        int(round(top * scale)),
+        int(round(right * scale)),
+        int(round(bottom * scale)),
     )
     paste_size = max(24, int(round(LOGO_PASTE_SIZE * scale)))
     composed = paste_logo(hand, logo, erase_box, paste_size)

@@ -1,8 +1,6 @@
 """Tests for visualization: RLE encoding and timeline figure builder."""
 
-import numpy as np
 import pandas as pd
-import pytest
 
 import tsqc
 from tsqc.viz.rle import encode_quality_runs

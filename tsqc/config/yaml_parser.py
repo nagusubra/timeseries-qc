@@ -229,9 +229,9 @@ def _build_rule(spec: dict[str, Any], context: str) -> Rule:
         )
 
     if check_name == "delta":
-        min_delta = spec.get("min_delta")
-        max_delta = spec.get("max_delta")
-        if min_delta is None and max_delta is None:
+        delta_min = spec.get("min_delta")
+        delta_max = spec.get("max_delta")
+        if delta_min is None and delta_max is None:
             raise ValueError(
                 f"{context}: At least one of 'min_delta' or 'max_delta' "
                 f"is required for check: delta.\n"
@@ -239,8 +239,8 @@ def _build_rule(spec: dict[str, Any], context: str) -> Rule:
                 f"  Example: {{check: delta, min_delta: 0.5, max_delta: 100.0, level: sus}}"
             )
         return DeltaRule(
-            min_delta=float(min_delta) if min_delta is not None else None,
-            max_delta=float(max_delta) if max_delta is not None else None,
+            min_delta=float(delta_min) if delta_min is not None else None,
+            max_delta=float(delta_max) if delta_max is not None else None,
             level=level,
         )
 
