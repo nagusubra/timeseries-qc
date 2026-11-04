@@ -75,6 +75,13 @@ line-length = 100
 select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# tests assert against numpy/pandas scalars (np.bool_), where `== True` /
+# `== False` is the correct identity-agnostic comparison; `is True` fails.
+"tests/**" = ["E712"]
+# notebooks intentionally import mid-narrative
+"examples/**" = ["E402"]
+
 [tool.mypy]
 python_version = "3.10"
 ignore_missing_imports = true

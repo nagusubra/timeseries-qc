@@ -92,11 +92,11 @@ class TestQualityReasons:
         vals = [42.5678] * 15 + [50.0, 51.0, 52.0, 53.0, 54.0]
         df = pd.DataFrame({"timestamp": ts, "tag_name": "TAG", "value": vals})
         result = tsqc.check(df, rules=[FlatlineRule(window="5min", min_delta=0.0)])
-        
+
         # Find flatline rows
         flatline_rows = result.df[result.df["quality_reasons"].str.contains("flatline", na=False)]
         assert len(flatline_rows) > 0, "Expected some flatline flags"
-        
+
         # Check that reasons include the value
         first_reason = flatline_rows["quality_reasons"].iloc[0]
         assert "flatline @ 42.5678" in first_reason, f"Expected 'flatline @ 42.5678' in {first_reason}"

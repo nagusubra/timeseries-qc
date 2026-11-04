@@ -281,6 +281,7 @@ class OutlierRule(Rule):
                 f"method must be one of 'zscore', 'mad', 'iqr', got {method!r}."
             )
         self.method = method
+        self.name = f"outlier-{method}"
 
         if threshold is None:
             self.threshold = 3.0 if method in ("zscore", "mad") else 1.5
@@ -289,10 +290,6 @@ class OutlierRule(Rule):
 
         self.window = window
         self.min_periods = min_periods
-
-    @property
-    def name(self) -> str:
-        return f"outlier-{self.method}"
 
     def check(self, series: pd.Series) -> pd.Series:
         not_nan = series.notna()

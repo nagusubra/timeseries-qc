@@ -4,7 +4,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from tsqc.rules.builtins import CustomRule, DeltaRule, FlatlineRule, NullRule, OutlierRule, RangeRule
+from tsqc.rules.builtins import (
+    CustomRule,
+    DeltaRule,
+    FlatlineRule,
+    NullRule,
+    OutlierRule,
+    RangeRule,
+)
 
 
 def _make_series(values, freq="1min", tz="UTC"):

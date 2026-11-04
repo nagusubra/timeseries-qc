@@ -1,7 +1,6 @@
 """Tests for timestamp health checker (tsqc/time_health/checker.py)."""
 
 import pandas as pd
-import pytest
 
 import tsqc
 
